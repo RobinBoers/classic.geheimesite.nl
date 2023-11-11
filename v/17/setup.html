@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="nl">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>Uses — geheimesite.nl | Robin Boers</title>
+
+        <link rel="canonical" href="https://geheimesite.nl/setup" />
+
+        <link
+            rel="preload"
+            href="/v/17/assets/css/main.044b606b3a634b140b1c48842aab5ffbe47008a14a9ae2586a491129de7d15e3.css"
+            integrity="sha256-BEtgazpjSxQLHEiEKqtf&#43;&#43;RwCKFKmuJYakkRKd59FeM="
+            as="style" />
+        <link
+            rel="stylesheet"
+            href="/v/17/assets/css/main.044b606b3a634b140b1c48842aab5ffbe47008a14a9ae2586a491129de7d15e3.css"
+            integrity="sha256-BEtgazpjSxQLHEiEKqtf&#43;&#43;RwCKFKmuJYakkRKd59FeM="
+            title="default" />
+
+        <script
+            defer
+            src="/v/17/assets/js/menu.min.40e4616c9eaf31d91ce9d9bfd39e11cabd20eee88b466229bbb9ccd191587d82.js"
+            integrity="sha256-QORhbJ6vMdkc6dm/054Ryr0g7uiLRmIpu7nM0ZFYfYI="></script>
+
+        <link
+            rel="alternate"
+            hreflang="en"
+            href="https://geheimesite.nl/en/setup"
+            title="English" />
+    </head>
+    <body>
+        <a class="skip-nav" href="#content">Skip navigation</a>
+        <header class="page-header">
+            <p class="title">
+                <a href="/v/17/">Robin Boers</a>
+            </p>
+
+            <svg
+                style="display: none"
+                xmlns="http://www.w3.org/2000/svg"
+                class="menu-button"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+
+            <nav>
+                <ul class="menu">
+                    <li><a href="/v/17/">Home</a></li>
+
+                    <li><a href="/v/17/over-mij">Over mij</a></li>
+
+                    <li><a href="/v/17/projecten">Projecten</a></li>
+
+                    <li><a href="/v/17/boeken">Boeken</a></li>
+
+                    <li><a href="https://blog.geheimesite.nl">Blog</a></li>
+
+                    <li>
+                        <a class="more-menu-button" href="/v/17/more"
+                            >More
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                class="w-3 h-3">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </a>
+
+                        <ul class="more-menu">
+                            <li class="more-menu-heading">More</li>
+
+                            <li><a href="/v/17/contact">Contact</a></li>
+
+                            <li><a href="/v/17/profiel">Profiel</a></li>
+
+                            <li class="selected">Uses</li>
+
+                            <li><a href="/v/17/now">Now</a></li>
+
+                            <li><a href="/v/17/volg">Volg me</a></li>
+
+                            <li><a href="/v/17/abbonementen">Abonnementen</a></li>
+
+                            <li><a href="/v/17/hyperfeed">Hyperfeed</a></li>
+
+                            <li><a href="/v/17/youtube">Videoroll</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <main id="content" class="page-content">
+            <article>
+                <h1 id="linux-dev-setup">Linux Dev setup</h1>
+                <p>
+                    Mijn setup voor software/web development op Linux. Elixir,
+                    NodeJS, Python, PostgreSQL en PHP.
+                </p>
+                <h2 id="-distro">🐧 Distro</h2>
+                <p>
+                    Mijn huidige distro is NixOS. Ik vind het cool dat mijn
+                    systeem immutable en reproduceerbaar is (en atomic upgrades
+                    zijn ook wel noice). Ik gebruik Ik gebruik een tiling window
+                    manager genaamd Sway. Sway is een wayland compositor. Ik
+                    gebruik wayland omdat ik het gevoel heb dat het soepeler is
+                    dan Xorg. Ik heb Sway geïntegreerd met gnome services, net
+                    zoals ik altijd op Arch deed met mijn
+                    <a href="https://github.com/RobinBoers/sway-gnome"
+                        >sway-gnome</a
+                    >
+                    fork.
+                </p>
+                <p>
+                    Je kan mijn volledige Nix configuratie vinden in mijn
+                    <a href="https://github.com/RobinBoers/dotfiles"
+                        >dotfiles</a
+                    >
+                    repository.
+                </p>
+                <h2 id="-webbrowsers">🦊 Webbrowsers</h2>
+                <p>
+                    Voor webbrowsing gebruik ik normaliter Firefox. Ik vind het
+                    cool om de look van mijn browser aan te passen met CSS
+                    (Firefox userchome is fantastisch!). Ik enjoy momenteel
+                    verticale tabs, die ik heb gestolen van
+                    <a href="https://github.com/ranmaru22/firefox-vertical-tabs"
+                        >ranmaru22/firefox-vertical-tabs</a
+                    >.
+                </p>
+                <p>
+                    Ik gebruik ook (Ungoogled) Chromium om mijn projecten te
+                    testen in een tweede browser en als ik per sé een
+                    Chrome-only API moet testen.
+                </p>
+                <p>
+                    Zie mijn
+                    <a href="https://github.com/RobinBoers/firefox-tweaks"
+                        >firefox-tweaks</a
+                    >
+                    repo voor mijn huidige Firefox setup.
+                </p>
+                <h3 id="browser-extenties">Browser extenties</h3>
+                <ul>
+                    <li>
+                        <strong>Dark reader:</strong> dark mode voor websites
+                        die het nog niet ondersteunen
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/darkreader/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/dark-reader/eimadpbcbfnmbkopoojfekhnkhdbieeh"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Don&rsquo;t track me Google:</strong> verwijderd
+                        tracking info uit links
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/dont-track-me-google1/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/dont-track-me-google/gdbofhhdmcladcmmfjolgndfkpobecpg?hl=en"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>DuckDuckGo Privacy Essentials:</strong> bekijk
+                        tracking en privacy info voor sites
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/duckduckgo-for-firefox/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/duckduckgo-privacy-essent/bkdgflcldnnnapblkhphbgpggdiikppg?hl=en"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Enhancer for YouTube:</strong> geen ads + coole
+                        features
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/enhancer-for-youtube/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/enhancer-for-youtube/ponfpcnoihfmfllpaingbgckeeldkhle"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Enhanced GitHub:</strong> extra features voor
+                        GitHub zoals repo size en download buttons
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/enhanced-github/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/enhanced-github/anlikcnbgdeidpacdbdljnabclhahhmd"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Facebook Container:</strong> gebruikt container
+                        tabs om Facebook tracking te isoleren
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/facebook-container/"
+                            >F</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Firefox Multi-Account Containers:</strong>
+                        containers voor werk/school gerelateerde accounts
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/"
+                            >F</a
+                        >
+                    </li>
+                    <li>
+                        <strong>uBlock origin:</strong> block ads :)
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm?hl=en"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>Web Archives:</strong> bekijk oude versies van
+                        sites
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/view-page-archive/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/web-archives/hkligngkgcpcolhcnkgccglchdafcnao?hl=en"
+                            >G</a
+                        >
+                    </li>
+                    <li>
+                        <strong>I still don&rsquo;t care about cookies</strong>:
+                        klikt automatisch cookie popups weg
+                        <a
+                            href="https://addons.mozilla.org/en-US/firefox/addon/istilldontcareaboutcookies/"
+                            >F</a
+                        >
+                        <a
+                            href="https://chrome.google.com/webstore/detail/i-still-dont-care-about-c/edibdbjcniadpccecjdfdjjppcpchdlm"
+                            >G</a
+                        >
+                    </li>
+                </ul>
+                <h2 id="-cli">🛠️ CLI</h2>
+                <p>
+                    Mijn favoriete shell is <code>fish</code>. Ik ben helemaal
+                    gek op de autocomplete en color support dat het bied. Ik
+                    gebruik starship as prompt omdat het er goed uitziet zonder
+                    enige configuration en in alle shells goed werkt (dus mn
+                    shell ziet er hetzelfde uit als ik voor some reason van
+                    shell switch).
+                </p>
+                <ul>
+                    <li>
+                        <strong><code>gh</code></strong
+                        >: issues/PRs aanmaken
+                    </li>
+                    <li>
+                        <strong><code>git</code></strong
+                        >: version control
+                    </li>
+                    <li>
+                        <strong><code>pass</code>:</strong> password manager
+                    </li>
+                    <li>
+                        <strong><code>bix</code></strong
+                        >: wrappper voor package managers
+                    </li>
+                    <li>
+                        <strong><code>nvim</code></strong
+                        >: primaire tekst editor
+                    </li>
+                    <li>
+                        <strong><code>htop</code></strong
+                        >: taskmanager
+                    </li>
+                    <li>
+                        <strong><code>yt-dlp</code></strong
+                        >: download video&rsquo;s
+                    </li>
+                    <li>
+                        <strong><code>spotdl</code></strong
+                        >: download spotify playlists
+                    </li>
+                    <li>
+                        <strong><code>flatpak</code></strong
+                        >: cross-platform apps
+                    </li>
+                    <li>
+                        <strong><code>bat</code></strong
+                        >: replacement voor <code>cat</code> en pager voor
+                        <code>man</code>
+                    </li>
+                    <li>
+                        <strong><code>fd</code></strong
+                        >: replacement voor <code>find</code>
+                    </li>
+                    <li>
+                        <strong><code>ripgrep</code></strong
+                        >: replacement voor <code>grep</code>
+                    </li>
+                    <li>
+                        <strong><code>delta</code></strong
+                        >: verbeterde git diff
+                    </li>
+                    <li>
+                        <strong><code>cmatrix</code></strong
+                        >: aan mijn vrienden laten zien dat ik een gekke hacker
+                        ben
+                    </li>
+                    <li>
+                        <strong><code>ranger</code></strong
+                        >: file managment
+                    </li>
+                    <li>
+                        <strong><code>phploy</code></strong
+                        >: revision based deployment using git
+                    </li>
+                </ul>
+                <h2 id="-code-editor">💾 Code editor</h2>
+                <p>
+                    Mijn favoriete code editor is VSCode. Ik heb in het verleden
+                    heb zowel Brackets als Atom gebruikt, maar VSCode is gewoon
+                    perfect. Het laadt snel en heeft verschrikkelijk veel
+                    nuttige plugins.
+                </p>
+                <p>
+                    En als extra bonus synct het ook nog eens via mijn GitHub
+                    account met settings sync.
+                </p>
+                <h3 id="extenties">Extenties</h3>
+                <ul>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=formulahendry.auto-close-tag"
+                            >Auto close tag</a
+                        >
+                        - sluit HTML en XML tags
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=formulahendry.auto-rename-tag"
+                            >Auto rename tag</a
+                        >
+                        - rename tags gemakkelijker
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=kamikillerto.vscode-colorize"
+                            >colorize</a
+                        >
+                        - maakt kleuren in tekst gekleurd
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=makman12.copypasta"
+                            >CopyPasta</a
+                        >
+                        (my
+                        <a href="https://github.com/RobinBoers/CopyPasta"
+                            >fork</a
+                        >) - pulls stuff van StackOverflow (GitHub copilot at
+                        home 😂)
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=JakeBecker.elixir-ls"
+                            >ElixirLS</a
+                        >
+                        - elixir language support
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint"
+                            >ESLint</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode"
+                            >Prettier</a
+                        >
+                        - Code formatter
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=tombonnike.vscode-status-bar-format-toggle"
+                            >Formatting toggle</a
+                        >
+                        - ik wil niet altijd formatting
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=arcensoth.language-mcfunction"
+                            >language-mcfunction</a
+                        >
+                        - support voor minecraft datapacks
+                    </li>
+                    <li>PHP IntelliSense</li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=dlasagno.rasi"
+                            >Rasi</a
+                        >
+                        - rofi config format
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml"
+                            >XML</a
+                        >
+                        and
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml"
+                            >YAML</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens"
+                            >GitLens</a
+                        >
+                        - git maar cooler
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance"
+                            >Pylance</a
+                        >
+                        &amp;
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=ms-python.python"
+                            >Python</a
+                        >
+                        - python support
+                    </li>
+                </ul>
+                <h3 id="theming">Theming</h3>
+                <p>
+                    Ik wil graag dat mijn editor dark is, zoals veel
+                    programmeurs. Mijn favoriete dark themes zijn:
+                </p>
+                <ul>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=piousdeer.adwaita-theme"
+                            >Adwaita</a
+                        >. It integrates nicely with my other GTK applications.
+                    </li>
+                    <li>
+                        <a
+                            href="https://github.com/RobinBoers/frontend-delight-vscode"
+                            >Frontend Delight Dark</a
+                        >. Dit colorscheme heb ik een keer ergens anders vandaan
+                        geport, maar ik kan me niet meer precies herinneren waar
+                        ik het gestolen heb.
+                    </li>
+                    <li>
+                        <a
+                            href="https://marketplace.visualstudio.com/items?itemName=GitHub.github-vscode-theme"
+                            >GitHub Dark</a
+                        >. Dit is het oude GitHub theme voor VSCode. Het nieuwe
+                        heet GitHub Dark Default.
+                    </li>
+                </ul>
+                <p>
+                    Ik vind
+                    <a
+                        href="https://marketplace.visualstudio.com/items?itemName=teabyii.ayu"
+                        >Ayu dark</a
+                    >,
+                    <a
+                        href="https://marketplace.visualstudio.com/items?itemName=enkia.tokyo-night"
+                        >Tokyo Night</a
+                    >
+                    en
+                    <a
+                        href="https://marketplace.visualstudio.com/items?itemName=piousdeer.adwaita-theme"
+                        >Adwaita Light</a
+                    >
+                    ook leuk, maar ik gebruik zelden light mode. Voor file icons
+                    gebruik ik
+                    <a
+                        href="https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons"
+                        >vscode-icons</a
+                    >, en voor de product icons heb ik
+                    <a
+                        href="https://marketplace.visualstudio.com/items?itemName=miguelsolorio.fluent-icons"
+                        >Fluent icons</a
+                    >.
+                </p>
+                <p>
+                    Mijn favoriete font bitmap font is Terminus. Verder gebruik
+                    ik overal JetBrains Mono vanwege de clean look en fancy
+                    ligatures.
+                </p>
+                <p>
+                    Vroeger gebruikte ik ook
+                    <a href="https://github.com/dejavu-fonts/dejavu-fonts"
+                        >DejaVu Sans Mono</a
+                    >
+                    en voor VSCode een versie daarvan genaamd
+                    <a href="https://github.com/SSNikolaevich/DejaVuSansCode"
+                        >DejaVu Sans Code</a
+                    >, met support voor ligatures heeft.
+                </p>
+                <h2 id="-apps">📒 Apps</h2>
+                <p>Dit zijn de apps die ik dagelijks gebruik:</p>
+                <ul>
+                    <li><strong>Thunderbird:</strong> Mail en IRC client</li>
+                    <li><strong>Rofi:</strong> Desktop en run launcher</li>
+                    <li><strong>Kitty:</strong> Terminal emulator</li>
+                    <li><strong>Spotify Web</strong>: Music :D</li>
+                    <li><strong>Element:</strong> Chatten</li>
+                    <li>
+                        <strong>Feh:</strong> Image viewer &amp; wallpaper
+                        setter
+                    </li>
+                    <li><strong>FileZilla:</strong> FTP client</li>
+                    <li><strong>Portmaster:</strong> Firewall</li>
+                    <li><strong>Celluloid:</strong> Media player</li>
+                    <li><strong>Aegis:</strong> 2FA authenticator</li>
+                </ul>
+                <h2 id="-mentioned">👀 Mentioned</h2>
+                <ul>
+                    <li>
+                        <a href="https://github.com/RobinBoers/firefox-tweaks"
+                            >firefox-tweaks</a
+                        >
+                        - firefox setup
+                    </li>
+                    <li>
+                        <a href="https://github.com/RobinBoers/sway-gnome"
+                            >sway-gnome</a
+                        >
+                        - gnome intergratie via systemd voor sway
+                    </li>
+                    <li>
+                        <a
+                            href="https://github.com/RobinBoers/frontend-delight-vscode"
+                            >frontend-delight-vscode</a
+                        >
+                        - vscode theme
+                    </li>
+                    <li>
+                        <a href="https://github.com/RobinBoers/CopyPasta"
+                            >CopyPasta</a
+                        >
+                        - github copilot at home
+                    </li>
+                </ul>
+                <p>
+                    Geschreven door Robin Boers. Geïnspireerd door
+                    <a href="https://github.com/divyanshu013/linux-dev-setup"
+                        >divyanshu013/linux-dev-setup</a
+                    >.
+                </p>
+            </article>
+        </main>
+        <footer class="page-footer">
+            <p class="mb-[1em]">
+                &copy; 2023 Robin Boers. Webdesigner en Elixir programmeur sinds
+                2017.
+            </p>
+
+            <aside class="text-xs">
+                Gemaakt met <a href="https://gohugo.io">Hugo v0.119.0</a> •
+
+                <a href="/v/17/volg">Abonneren</a>
+
+                • <a href="/v/17/privacy">Privacy</a>
+
+                • <a href="/v/17/colofon">Colofon</a>
+
+                • <span class="page-size">??? kB</span>
+            </aside>
+        </footer>
+        <script>
+            let pageWeight = document.body.innerHTML.length / 1000;
+            document.querySelector(
+                ".page-size"
+            ).innerText = `${pageWeight.toFixed(1)} kB`;
+        </script>
+    </body>
+</html>
