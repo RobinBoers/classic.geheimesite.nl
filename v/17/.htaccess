@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /
+RewriteBase /v/17/
 
 # Set default charset and language
 AddDefaultCharset UTF-8
