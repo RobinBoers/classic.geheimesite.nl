@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Setting up a tilde — geheimesite.nl | Robin Boers</title>
+
+    <meta
+      name="description"
+      content="_This is a living document, describing my progress on setting up my own tilde/pubnix server. Keep in mind that this is very much a Work-In-Progress......"
+    />
+
+    <link rel="canonical" href="https://geheimesite.nl/tilde" />
+
+    <link rel="icon" sizes="16x16" href="/v/18/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="16x16" href="/v/18/favicon.ico" />
+
+    <link rel="stylesheet" href="/v/18/main.css" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="primary feed, dutch"
+      href="https://geheimesite.nl/index-nl.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="less frequent posts, english"
+      href="https://geheimesite.nl/index-en.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="bilingual feed, dutch and english"
+      href="https://geheimesite.nl/index.xml"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/v/18/"> ← Back to the homepage </a>
+      </nav>
+    </header>
+
+    <main class="h-entry">
+      <h1 class="p-name">Setting up a tilde</h1>
+
+      <div class="content p-summary e-content">
+        <p>
+          <em
+            >This is a living document, describing my progress on setting up my
+            own tilde/pubnix server. Keep in mind that this is very much a
+            Work-In-Progress(tm).</em
+          >
+        </p>
+        <p>
+          So, I decided I wanted to host my own pubnix/tilde (I still
+          don&#8217;t know what to call it LMAO). Basically, it&#8217;s gonna be
+          a server where members can log in via SSH to collaborate on code,
+          experiment with Linux and play around on the CLI.
+        </p>
+        <p>
+          I described the main idea in my previous post, so go read that if
+          you&#8217;re interested.
+        </p>
+        <h2 id="creating-an-account">Creating an account</h2>
+        <p>
+          After I set up the root account of my Debian server and logged in, I
+          added my own account, and gave myself root privileges:
+        </p>
+        <pre><code class="language-sh">adduser robin
+usermod -aG members robin # group that all members will be in
+usermod -aG sudo robin
+</code></pre>
+        <p>
+          I also turned off root login over SSH in
+          <code>/etc/ssh/sshd_config</code>:
+        </p>
+        <pre><code class="language-conf">PermitRootLogin no
+</code></pre>
+        <p>And finally I set the timezone and hostname:</p>
+        <pre><code class="language-sh">timedatectl set-timezone Europe/Amsterdam
+hostnamectl set-hostname dupunkto.org
+</code></pre>
+        <h2 id="welcome-messages">Welcome messages</h2>
+        <p>
+          I wanted a nice welcome message to be printed when logging in, instead
+          of the garbage that was printed before. I started out by emptying
+          <code>/etc/motd</code>, and then disabling all scripts in
+          <code>/etc/update-motd.d</code>.
+        </p>
+        <p>
+          I added a few new scripts in <code>/etc/update-motd.d</code>. The
+          first two digits specify the order that the files get executed in. I
+          added two files:
+        </p>
+        <pre><code class="language-sh">sudoedit /etc/update-motd.d/05-welcome
+sudo chmod +x /etc/update-motd.d/05-welcome
+sudoedit /etc/update-motd.d/10-currently-online
+sudo chmod +x /etc/update-motd.d/10-currently-online
+</code></pre>
+        <pre><code class="language-sh">#!/bin/sh
+
+echo "Welcome to {du}punkto, a simple invite-only pubnix!"
+echo "We hope you enjoy your stay here :)"
+echo
+</code></pre>
+        <pre><code class="language-sh">#!/bin/sh
+
+echo "These users are currently online:"
+echo "you"
+users | tr ' ' \\n | uniq
+
+echo
+</code></pre>
+        <h2 id="member-directories">Member directories</h2>
+        <p>
+          I wanted members to have a nice default config when they joined, so I
+          editted some files in <code>/etc/skel</code>:
+        </p>
+        <pre><code class="language-sh">sudoedit /etc/skel/.bashrc
+</code></pre>
+        <pre><code class="language-bash"># ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# Don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# Append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# Check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# If the terminal used specifies colors, set a fancy prompt
+case "$TERM" in
+    xterm-color|*-256color) colors=yes;;
+esac
+
+# Set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] &amp;&amp; [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+if [ "$colors" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+
+# Color support in ls and other utils
+if [ "$colors" = yes ]; then
+    test -r ~/.dircolors &amp;&amp; eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias dir='dir --color=auto'
+    alias grep='grep --color=auto'
+fi
+
+# Colored GCC warnings and errors
+
+alias ll='ls -l'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..="cd .."
+alias rm="rm -r" # Allow to remove directories
+alias cp="cp -i" # Warn before overwriting existing files
+alias mv="mv -i"
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# Enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+</code></pre>
+        <h2 id="setting-up-gemini-hosting">Setting up Gemini hosting</h2>
+        <p>
+          I wanted members to be able to host Gemini sites, by putting
+          <code>.gmi</code> files in the <code>pub/gem</code> directory.
+        </p>
+        <p>
+          After a bit of searching I found the
+          <a href="https://tildegit.org/solderpunk/molly-brown">molly-brown</a>
+          server, which does exactly what I want. One
+          <code>go install ...</code> later, I copied it to
+          <code>/usr/local/bin</code>.
+        </p>
+        <p>
+          It is very straight forward to setup. First generate a TLS cert (as
+          root):
+        </p>
+        <pre><code class="language-bash">openssl req -x509 -out /etc/molly.crt -keyout /etc/molly.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -days 36500 \
+  -subj '/CN=localhost' -extensions EXT -config &lt;( \
+   printf "[dn]\nCN=dupunkto.org\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:dupunkto.org,DNS:git.dupunkto.org\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+</code></pre>
+        <p>Then edit the <code>/etc/molly.conf</code>:</p>
+        <pre><code class="language-toml">Port = 1965
+Hostname = "dupunkto.org"
+DocBase = "/var/gemini/"
+HomeDocBase = "users"
+CertPath = "/etc/molly.crt"
+KeyPath = "/etc/molly.key"
+
+DirectoryListing = true
+DirectorySubdirsFirst = true
+</code></pre>
+        <p>I also created a user for it:</p>
+        <pre><code class="language-sh">adduser --system --group --no-create-home --shell /usr/sbin/nologin --comment "Molly gemini server" molly
+sudo chown molly:molly /etc/molly.*
+</code></pre>
+        <p>
+          However, I don&#8217;t want members to have to edit files in
+          <code>/var/gemini/users/username</code>, I want them to have
+          <code>pub/gem</code>. Luckily ChatGPT came up with this wonderful
+          script that symlinks <code>~/pub/gem</code> to the corresponding
+          directory in <code>/var/gemini</code>:
+        </p>
+        <pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+web_base_dir="/var/gemini/users"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  web_dir="$web_base_dir/$username"
+  
+  if [ ! -d "$web_dir" ]; then
+    mkdir -m 0755 -p "$web_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$web_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -d "/home/$username/pub" ]; then
+    mkdir -p "/home/$username/pub" 
+  fi
+
+  if [ ! -h "/home/$username/pub/gem" ]; then
+    ln -s "$web_dir" "/home/$username/pub/gem"
+  fi
+
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+        <p>
+          The only thing left to do, is to setup a systemd unit and start the
+          server. The <code>molly-brown</code> repo already provided a service
+          file, which I gratefully copied:
+        </p>
+        <pre><code class="language-toml">[Unit]
+Description=Molly Brown gemini server
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=molly
+ExecStart=/usr/local/bin/molly-brown -c /etc/molly.conf
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+        <p>
+          I put it in <code>/etc/systemd/system/molly-brown.service</code>. Then
+          simply run:
+          <code>systemctl enable molly-brown.service --now</code> (as root), and
+          kadabing kadaboom. A gemini server.
+        </p>
+        <h2 id="webhosting">Webhosting</h2>
+        <p>
+          I also wanted normal webhosting, which would work the same as Gemini
+          hosting, but uses the <code>pub/web</code> directory, instead of
+          <code>pub/gem</code>. For that I chose <code>nginx</code>, which I
+          installed with APT.
+        </p>
+        <pre><code class="language-sh">sudo apt install nginx libnginx-mod-http-fancyindex
+</code></pre>
+        <p>I added this in <code>/etc/nginx/conf.d/01-userdirs.conf</code>:</p>
+        <pre><code class="language-nginx">server {
+    server_name dupunkto.org;
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    # SSL configuration
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    charset utf-8;
+    gzip on;
+
+    root /var/www;
+
+    index index.html index.htm;  
+
+    fancyindex on;
+    fancyindex_header /header.html;
+    fancyindex_footer /footer.html;
+    fancyindex_ignore "header.html" "footer.html";
+    fancyindex_time_format "%Y-%m-%d";
+
+    try_files $uri $uri.html $uri.htm $uri/ =404; 
+
+    location ~ (README.?|\.md|\.gmi)$ {
+        default_type text/plain;
+    }
+
+    # Special config for me :)
+    location /~robin {
+        fancyindex_header /~robin/header.html;
+        try_files $uri $uri.html $uri/ =404;
+    }
+}
+</code></pre>
+        <p>Again, I used a fancy script to symlink the directories:</p>
+        <pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+web_base_dir="/var/www"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  web_dir="$web_base_dir/~$username"
+
+  if [ ! -d "$web_dir" ]; then
+    mkdir -m 0755 -p "$web_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$web_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -d "/home/$username/pub" ]; then
+    mkdir -p "/home/$username/pub" 
+  fi
+
+  if [ ! -h "/home/$username/pub/web" ]; then
+    ln -s "$web_dir" "/home/$username/pub/web"
+  fi
+  
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+        <p>Oh, and to setup SSL (as root):</p>
+        <pre><code class="language-shell">apt install certbot python3-certbot-nginx
+certbot certonly -d dupunkto.org,git.dupunkto.org,ftp.dupunkto.org,dav.dupunkto.org,chat.dupunkto.org
+</code></pre>
+        <p>
+          If it says Nginx isn&#8217;t properly configured, that&#8217;s
+          probably because it expects SSL to be there but it isn&#8217;t (yet).
+          If so, just choose the &#8220;standalone server&#8221; option.
+        </p>
+        <p>
+          I also added this to my <code>/etc/nginx/nginx.conf</code>, which I
+          generated using the
+          <a
+            href="https://ssl-config.mozilla.org/#server=nginx&amp;version=1.22.1&amp;config=intermediate&amp;openssl=3.0.11&amp;hsts=false&amp;guideline=5.7"
+            >Mozilla SSL Configuration Generator</a
+          >:
+        </p>
+        <pre><code class="language-nginx">include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+ssl_certificate /etc/letsencrypt/live/dupunkto.org/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/dupunkto.org/privkey.pem;
+ssl_trusted_certificate /etc/letsencrypt/live/dupunkto.org/chain.pem;
+
+# OCSP stapling
+ssl_stapling on;
+ssl_stapling_verify on;
+</code></pre>
+        <h2 id="git-hosting">Git hosting</h2>
+        <p>
+          Setting up git hosting vas very straight forward after setting up
+          Nginx. Just install <code>cgit</code> and edit the config file in
+          <code>/etc/cgitrc</code>:
+        </p>
+        <pre><code class="language-ini">css=/custom.css
+logo=/dupunkto.png
+virtual-root=/
+
+# Dumb clones
+enable-http-clone=1
+clone-url= http://$HTTP_HOST/$CGIT_REPO_URL
+
+enable-subject-links=1
+enable-tree-linenumbers=1
+enable-commit-graph=1
+enable-blame=1
+enable-log-filecount=1
+enable-log-linecount=1
+enable-git-config=1
+enable-index-owner=0
+side-by-side-diffs=1
+summary-branches=5
+
+# Enable READMEs
+about-filter=/usr/local/lib/cgit/filters/about-formatting.sh
+source-filter=/usr/local/lib/cgit/filters/syntax-highlighting.py
+readme=:README.txt
+readme=:README.md
+readme=:README
+
+# Prevent spam
+noplainemail=1
+
+# Allow downloads
+snapshots=tar.gz zip
+
+branch-sort=age
+repository-sort=age
+
+root-title={du}punkto
+root-desc=git hosting for {du}puntko members
+
+robots=noindex, nofollow
+scan-path=/usr/local/git/repositories
+</code></pre>
+        <p>
+          I stole some CSS from
+          <a href="https://git.oriole.systems/custom.css"
+            >https://git.oriole.systems/custom.css</a
+          >
+          and put it in <code>/usr/share/cgit</code>, along with a logo titled
+          <code>dupunkto.png</code>.
+        </p>
+        <pre><code class="language-css">@import "cgit.css";
+
+html {
+	background-color: white;
+}
+
+* {
+	line-height: 1.35em;
+}
+
+@media (max-width: 480px) {
+	html {
+		font-size: 12px;
+	}
+}
+
+@media (min-width: 480px) {
+	html {
+		font-size: 13px;
+	}
+}
+
+@media (min-width: 786px) {
+	html {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 786px) {
+	div#cgit table#header td.logo {
+		display: none;
+	}
+}
+
+@media (min-width: 992px) {
+	html {
+		font-size: 15px;
+	}
+}
+
+@media (min-width: 1200px) {
+	html {
+		font-size: 16px;
+	}
+}
+
+@media (min-width: 1600px) {
+	html {
+		font-size: 18px;
+	}
+}
+
+div#cgit {
+	/*font-family: monospace;*/
+	font-size: 1em;
+}
+
+pre, div#cgit table.diff td, div#cgit table.ssdiff td {
+	font-size: 1.1em;
+	font-family: monospace;
+}
+
+code {
+	font-family: inherit;
+}
+
+#summary code {
+	font-family: monospace;
+}
+
+div#cgit div.commit-msg {
+	font-family: monospace;
+}
+
+div#cgit a.ls-blob, div#cgit a.ls-dir, div#cgit .ls-mod, div#cgit td.ls-mode, div#cgit td.ls-size {
+	font-family: monospace;
+}
+
+div#cgit table.list td.commitgraph, div#cgit table.list td.logmsg, div#cgit table.list td.logsubject{
+	font-family: monospace;
+}
+
+div#cgit .sha1 {
+	font-family: monospace;
+}
+
+div#cgit table.ssdiff td {
+	font-size: 14px;
+}
+
+.highlight pre {
+	font-size: inherit;
+}
+
+div#cgit .commit-subject, div#cgit div#summary {
+	max-width: 80ch;
+}
+
+div#cgit div.footer, div#cgit div.footer a {
+	color: #aaa;
+}
+
+div#cgit table.list tr:nth-child(even) {
+	background: inherit;
+}
+
+div#cgit table.list tr:hover {
+	background: inherit;
+}
+
+div#cgit table.list tr.nohover-highlight:hover:nth-child(even) {
+	background: inherit;
+}
+
+div#cgit table.commit-info th {
+	color: #888;
+}
+
+div#cgit table.blob td.linenumbers a:target {
+	color: white;
+	background-color: black;
+}
+
+div#cgit table.list td a.ls-dir {
+	font-weight: normal;
+}
+
+div#cgit table.tabs td.form form, div#cgit table#header td.form {
+	padding-bottom: 4px;
+}
+
+td.logo img {
+	width: 100%;
+	border-radius: 15px;
+}
+
+table.head, table.foot { width: 100%; }
+td.head-rtitle, td.foot-os { text-align: right; }
+td.head-vol { text-align: center; }
+div.Pp { margin: 1ex 0ex; }
+div.Nd, div.Bf, div.Op { display: inline; }
+span.Pa, span.Ad { font-style: italic; }
+span.Ms { font-weight: bold; }
+dl.Bl-diag > dt { font-weight: bold; }
+code.Nm, code.Fl, code.Cm, code.Ic, code.In, code.Fd, code.Fn,
+code.Cd { font-weight: bold; font-family: inherit; }
+
+table.Nm td:first-child { padding-right: 1ch; }
+code.Fl { white-space: nowrap; }
+span.RsT { font-style: italic; }
+dl.Bl-tag:not(.Bl-compact) dt { margin-top: 1em; }
+ul.Bl-bullet:not(.Bl-compact) li { margin-top: 1em; }
+div.Bd-indent { margin-left: 4ch; }
+table.Bl-column { width: 100%; }
+table.foot { margin-top: 1em; }
+table.tbl td:not(:last-child) { border-right: solid 1px; }
+table.tbl tr:first-child { border-bottom: 2px solid black; }
+table.tbl td { padding: 0 1em; }
+
+div.manual-text a.Xr {
+	color: inherit !important;
+}
+
+div.manual-text a.Xr:hover {
+	text-decoration: none !important;
+}
+</code></pre>
+        <p>
+          I then created the <code>/var/git</code> and
+          <code>/var/git/repositories</code> directories, and ran an adaptation
+          of the script used to setup gemini hosting:
+        </p>
+        <pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+repo_base_dir="/var/git/repositories"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  repo_dir="$repo_base_dir/~$username"
+
+  if [ ! -d "$repo_dir" ]; then
+    mkdir -m 0755 -p "$repo_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$repo_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -h "/home/$username/git" ]; then
+    ln -s "$repo_dir" "/home/$username/git"
+  fi
+
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+        <p>
+          You also need a package called <code>fcgiwrap</code>, just install it
+          and then run:
+        </p>
+        <pre><code class="language-sh">systemctl enable fcgiwrap --now
+</code></pre>
+        <p>
+          And I added the relevant section to my Nginx config
+          (<code>/etc/nginx/conf.d/02-git.conf</code>):
+        </p>
+        <pre><code class="language-nginx">server {
+    server_name  git.dupunkto.org;
+
+    listen 80;
+    listen [::]:80;
+
+    # SSL configuration
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    access_log  /var/log/nginx/cgit-access.log;
+    error_log   /var/log/nginx/cgit-error.log;
+
+    root /usr/share/cgit;
+    try_files $uri @cgit;
+
+    location @cgit {
+        include          fastcgi_params;
+        fastcgi_param    SCRIPT_FILENAME /usr/lib/cgit/cgit.cgi;
+        fastcgi_pass     unix:/run/fcgiwrap.socket;
+
+        fastcgi_param    PATH_INFO    $uri;
+        fastcgi_param    QUERY_STRING $args;
+        fastcgi_param    HTTP_HOST    $server_name;
+    }
+}
+</code></pre>
+        <h3 id="notes-on-git">Notes on Git</h3>
+        <p>
+          For some reason, the repositories I exported from Gitea all contained
+          a file called &#8220;description&#8221;, which contained a long
+          message telling you to edit it. cgit automatically uses the contents
+          of this file as repo description. If you remove the files, it just
+          shows &#8220;[no description]&#8221;, which is way cleaner in my
+          opinion.
+        </p>
+        <pre><code class="language-sh">find . -type f -name "description" -exec rm -r {} \;
+</code></pre>
+        <p>
+          <em
+            >Edit: this is normal. When you initialize a bare Git repo, this
+            file will always be created (at least for me). I decided to delete
+            it and use the <code>[gitweb]</code> section in
+            <code>.config</code> instead.</em
+          >
+        </p>
+        <p>
+          Also, for READMEs to work, you have to install these dependencies:
+        </p>
+        <pre><code class="language-sh">sudo apt install python3-markdown python3-docutils groff
+</code></pre>
+        <p>
+          And, last of all, for mirroring your repos to Codeberg, I will post
+          something very soon.
+        </p>
+        <h2 id="security">Security</h2>
+        <p>I installed the UFW firewall:</p>
+        <pre><code class="language-sh">sudo apt install ufw
+ufw allow 20/tcp # SSH
+ufw allow 80/tcp # HTTP
+ufw allow 443/tcp # SSL
+ufw allow 1965/tcp # Gemini
+ufw allow 8448/tcp # Matrix (federation)
+ufw allow 5222/tcp # XMPP
+ufw allow 5223/tcp # XMPP SSL
+ufw allow 5296/tcp # XMPP server
+ufw allow 8010/tcp # XMPP file transfers
+ufw enable
+</code></pre>
+        <p>
+          I also installed <code>fail2ban</code>, which automatically bans bots
+          spamming port 20:
+        </p>
+        <pre><code class="language-sh">sudo apt install fail2ban
+systemctl enable --now fail2ban
+</code></pre>
+        <h2 id="admin-permissions">Admin permissions</h2>
+        <p>
+          I created the group <code>mod</code> and gave it write permissions
+          over <code>/var/www</code> and <code>/var/gemini</code>, for
+          maintaining the website from a non-sudo account.
+        </p>
+        <pre><code class="language-sh">addgroup mod
+usermod -aG mod &lt;username>
+chown root:mod &lt;somedirectory>
+chmod g+w &lt;somedirectory>
+</code></pre>
+        <h2 id="credits">Credits</h2>
+        <p>These articles helped a lot:</p>
+        <ul>
+          <li>
+            <a
+              href="https://bryanbrattlof.com/cgit-nginx-gitolite-a-personal-git-server/"
+              >https://bryanbrattlof.com/cgit-nginx-gitolite-a-personal-git-server/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.edwinwenink.xyz/posts/47-tilde_server/#setting-up-a-usedir-web-server-with-nginx"
+              >https://www.edwinwenink.xyz/posts/47-tilde_server/#setting-up-a-usedir-web-server-with-nginx</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <footer>
+        <p>
+          Posted on
+
+          <a class="u-url" href="https://geheimesite.nl/tilde">
+            <time class="dt-published" datetime="2023-10-27">
+              Oct 27, 2023
+            </time>
+          </a>
+        </p>
+
+        <p class="reply-by-email">
+          <a
+            href="mailto:hello@geheimesite.nl?subject=RE:%20“Setting+up+a+tilde”"
+          >
+            Reply by email
+          </a>
+        </p>
+      </footer>
+    </main>
+
+    <footer>
+      <p>
+        Made with ♡ in the Netherlands. Copying is an act of love. Please copy.
+      </p>
+    </footer>
+  </body>
+</html>

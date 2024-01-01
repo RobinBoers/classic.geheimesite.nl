@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nadenken over privacy — geheimesite.nl | Robin Boers</title>
+
+    <meta
+      name="description"
+      content="Ik ben bezig met het lezen van _[This is how they tell me the world ends](https://www.bibliotheek.nl/catalogus/titel.434364606.html/this-is-how-the......"
+    />
+
+    <link rel="canonical" href="https://geheimesite.nl/nadenken-over-privacy" />
+
+    <link rel="icon" sizes="16x16" href="/v/18/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="16x16" href="/v/18/favicon.ico" />
+
+    <link rel="stylesheet" href="/v/18/main.css" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="primary feed, dutch"
+      href="https://geheimesite.nl/index-nl.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="less frequent posts, english"
+      href="https://geheimesite.nl/index-en.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="bilingual feed, dutch and english"
+      href="https://geheimesite.nl/index.xml"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/v/18/"> ← Terug naar de homepage </a>
+      </nav>
+    </header>
+
+    <main class="h-entry">
+      <h1 class="p-name">Nadenken over privacy</h1>
+
+      <div class="content p-summary e-content">
+        <p>
+          Ik ben bezig met het lezen van
+          <em
+            ><a
+              href="https://www.bibliotheek.nl/catalogus/titel.434364606.html/this-is-how-they-tell-me-the-world-ends/"
+              >This is how they tell me the world ends</a
+            ></em
+          >. Het gaat over hoe regeringen kritieke bugs in software (zero-days)
+          kopen en exploiteren om toegang te krijgen tot data waar we geen
+          toestemming voor hebben. Het zette me aan het denken over privacy en
+          data op het internet.
+        </p>
+        <p>
+          Je ziet overal ter wereld dat er steeds meer voor digitalisering
+          gepusht wordt. Alles moet ineens via het internet gaan. Het lijkt me
+          een nachtmerrie als straks al onze privé-informatie op onze smartphone
+          staat. We hebben al geen inzicht op welke data er mee wordt verzameld
+          en door welke bedrijven deze wordt opgeslagen en verwerkt. Het lijkt
+          me dus al helemaal een slecht idee om daar onze identiteitskaart,
+          betaalgegevens en medische gegevens aan toe te voegen.
+        </p>
+        <p>
+          Ik wil zelf kunnen bepalen welke informatie ik online zet, en alleen
+          de data waarvan ik <em>kies</em> dat ik deze upload wil ik online
+          hebben. Ik heb niks te verbergen, maar ik wil het liefst wel zelf
+          kunnen bepalen wat ik wel en niet deel.
+        </p>
+        <p>
+          Ik wil mijn eigen data beheren. Daarmee bedoel ik dat ik zelf bepaal
+          wat ik wel en niet deel en waar en hoe het wordt opgeslagen. Ik ben al
+          sinds 2021 bezig met het verplaatsen van mijn accounts en data naar
+          plekken die ik zelf beheer.
+        </p>
+        <p>
+          Zo maakt dit blog nu gebruik van
+          <a href="https://git.dupunkto.org/~robin/libre0b11/chop">Chop</a> en
+          GitHub Pages. Ik heb al mijn content als Markdown files op mijn laptop
+          staan in een Git repo. Ik kan de Git repo nu makkelijk naar een andere
+          code forge zoals Codeberg of GitLab verplaatsen en de site bij een
+          andere provider deployen. Ik ben daardoor niet meer afhankelijk van
+          Blogger<sup
+            ><a
+              href="#user-content-fn-1"
+              id="user-content-fnref-1"
+              data-footnote-ref
+              aria-describedby="footnote-label"
+              >1</a
+            ></sup
+          >.
+        </p>
+        <p>
+          Mijn wachtwoorden staan als GPG-versleutelde bestanden in een andere
+          Git repo in plaats van in de Firefox password manager. Hierdoor kan ik
+          mijn wachtwoorden makkelijk synchroniseren en heb ik zelf inzicht in
+          hoe ze beveiligd zijn<sup
+            ><a
+              href="#user-content-fn-2"
+              id="user-content-fnref-2"
+              data-footnote-ref
+              aria-describedby="footnote-label"
+              >2</a
+            ></sup
+          >.
+        </p>
+        <p>
+          Mijn email gaat primair via twee emailadressen op deze domeinnaam
+          &#8212; geheimesite.nl. Daardoor kan ik makkelijk naar een andere
+          provider switchen, zonder dat ik een nieuw emailadres aan al mijn
+          contacten moet doorgeven.
+        </p>
+        <p>
+          Het is niet per se dat ik Google, Microsoft en Mozilla niet vertrouw.
+          Het punt is dat ik nu zelf bepaal welke informatie ik openbaar maak en
+          wie er toegang tot heeft. Daarnaast ben ik ook zelf volledig in
+          controle over de data: ik kan het verplaatsen naar een andere plek
+          (want alles is met
+          <a href="/v/18/belang-van-open-standaarden">open standaarden</a>
+          opgeslagen) en bepalen wanneer het verwijderd wordt (en dan bedoel ik
+          dus ook 100% verwijderd). En als nu mijn data gelekt wordt is het in
+          ieder geval mijn eigen schuld.
+        </p>
+        <p>
+          Ik krijg van leeftijdsgenoten vaak te horen dat ze het gek vinden dat
+          ik zo privacybewust ben. Ze vragen dan waarom ik &#8220;zo bang ben
+          dat mijn data gestolen wordt&#8221;. Ik denk dat het op drie dingen
+          aankomt:
+        </p>
+        <ul>
+          <li>
+            Ik denk dat iedereen een fundamenteel recht op privacy heeft en ik
+            vind dat dat beschermd moet worden.
+          </li>
+          <li>
+            Ik wil digitaal onafhankelijk zijn van bedrijven die andere belangen
+            hebben dan ik.
+          </li>
+          <li>
+            Ik wil dat informatie over mij op <em>mijn</em> voorwaarden wordt
+            verwerkt, niet op willekeurig veranderende voorwaarden van een
+            Amerikaans bedrijf.
+          </li>
+          <li>
+            Ik vind het leuk om zelf de technische problemen op te lossen en
+            systemen te beheren waarin mijn data staat.
+          </li>
+        </ul>
+        <p>
+          Het gaat me dus om onafhankelijkheid en inzicht. Mensen mogen mijn
+          privé-informatie hebben &#8212; als ze het nodig hebben &#8212; maar
+          ik wil wel weten hoe, waarom en door wie mijn het wordt verwerkt.
+        </p>
+        <section data-footnotes class="footnotes">
+          <h2 class="sr-only" id="footnote-label">Footnotes</h2>
+          <ol>
+            <li id="user-content-fn-1">
+              <p>
+                Blogger heeft meerdere keren zonder duidelijke reden
+                willekeurige blogs offline gehaald, en daar geen toelichting op
+                gegeven. In sommige gevallen waren er geen backups, en gingen
+                jaren aan posts verloren.
+                <a
+                  href="#user-content-fnref-1"
+                  data-footnote-backref=""
+                  aria-label="Back to reference 1"
+                  class="data-footnote-backref"
+                  >↩</a
+                >
+              </p>
+            </li>
+            <li id="user-content-fn-2">
+              <p>
+                Password managers zijn een groot target voor hackers, omdat ze
+                makkelijk toegang verschaffen tot duizenden accounts. Door een
+                selfhosted password manager te gebruiken ben je een kleiner
+                target en kan je zelf de beveiliging beheren.
+                <a
+                  href="#user-content-fnref-2"
+                  data-footnote-backref=""
+                  aria-label="Back to reference 2"
+                  class="data-footnote-backref"
+                  >↩</a
+                >
+              </p>
+            </li>
+          </ol>
+        </section>
+      </div>
+
+      <footer>
+        <p>
+          Gepubliceerd op
+
+          <a class="u-url" href="https://geheimesite.nl/nadenken-over-privacy">
+            <time class="dt-published" datetime="2023-02-07">
+              Feb 07, 2023
+            </time>
+          </a>
+        </p>
+
+        <p class="reply-by-email">
+          <a
+            href="mailto:hello@geheimesite.nl?subject=RE:%20“Nadenken+over+privacy”"
+          >
+            Reageren via email
+          </a>
+        </p>
+      </footer>
+    </main>
+
+    <footer>
+      <p>
+        Made with ♡ in the Netherlands. Copying is an act of love. Please copy.
+      </p>
+    </footer>
+  </body>
+</html>

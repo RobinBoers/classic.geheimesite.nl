@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Writing my own SSG — geheimesite.nl | Robin Boers</title>
+
+    <meta
+      name="description"
+      content="A few days ago, I discovered the Gemini protocol. I heard about it a while back already, but I didn&amp;#8217;t pay that much attention and failed ......"
+    />
+
+    <link rel="canonical" href="https://geheimesite.nl/writing-my-own-ssg" />
+
+    <link rel="icon" sizes="16x16" href="/v/18/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="16x16" href="/v/18/favicon.ico" />
+
+    <link rel="stylesheet" href="/v/18/main.css" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="primary feed, dutch"
+      href="https://geheimesite.nl/index-nl.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="less frequent posts, english"
+      href="https://geheimesite.nl/index-en.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="bilingual feed, dutch and english"
+      href="https://geheimesite.nl/index.xml"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/v/18/"> ← Back to the homepage </a>
+      </nav>
+    </header>
+
+    <main class="h-entry">
+      <h1 class="p-name">Writing my own SSG</h1>
+
+      <div class="content p-summary e-content">
+        <p>
+          A few days ago, I discovered the Gemini protocol. I heard about it a
+          while back already, but I didn&#8217;t pay that much attention and
+          failed to notice it.
+        </p>
+        <p>
+          So, naturally, I was REALLY excited about this cool new toy. I
+          downloaded about four different clients/browsers to see which one I
+          liked the best (it turned out to be
+          <a href="/v/18//gmi.skyjake.fi/lagrange/">Lagrange</a>), and immediately
+          thought about porting my website to it. Small problem however: my site
+          is built using <a href="https://gohugo.io">Hugo</a>.
+        </p>
+        <p>
+          And I <em>love</em> Hugo. It&#8217;s fast. It&#8217;s easy. It&#8217;s
+          powerful. It&#8217;s fast. Did I mention that it&#8217;s fast?
+          However, Hugo is also really centered around HTML files. And to make
+          matters worse, my site is really complicated. It interacts with
+          multiple things on <code>api.geheimesite.nl</code>, renders RSS feeds,
+          downloads images, does fancy resource things.
+        </p>
+        <p>
+          In short, porting it over was gonna be <em>really hard</em>. So,
+          instead of breaking my brain over porting my primary website, I took a
+          look at my blog. Just like my website, my blog is built using Hugo.
+          Because I do really like Hugo a lot. So, after a quick bit of
+          Googling, I found out that I could
+          <a href="https://sylvaindurand.org/gemini-and-hugo/"
+            >add an output to Hugo</a
+          >. But what would be the fun of that, eh?
+        </p>
+        <p>
+          And to be honest, I&#8217;ve been wanting to build another blog for a
+          while now. Actually, I already bought a domain for it 4 months back.
+          Initially, I built it like a text-based system. I wrote a little PHP
+          script that handled the HTTP <code>PUT</code> verb, which meant I
+          could do cool things like this:
+        </p>
+        <pre><code class="language-shell">curl http://example.com/essay.txt --upload-file essay.txt -u robin:password
+</code></pre>
+        <p>
+          All files would be served as <code>text/plain</code>, and hyperlinks
+          would be added on separate lines, where you could easily copy and
+          paste them. Sounds familiar, right?
+        </p>
+        <p>
+          I also got very hyped when I found
+          <a href="https://notebook.wesleyac.com">Wesley&#8217;s notebook</a> a
+          while back. It&#8217;s such a simple, sleek and beautiful website. And
+          the cool thing is that he completely wrote the thing using
+          POSIX-complaint shell scripts, with almost no dependencies. In
+          addition to one of the prettiest designs I&#8217;ve seen in a while,
+          it also has a bunch of cool features:
+        </p>
+        <ul>
+          <li>Deep linking</li>
+          <li>Very cool 404 page</li>
+          <li>Images are automatically compressed</li>
+          <li>Builtin <code>git</code> history with links to diffs</li>
+        </ul>
+        <p>
+          So, of course, I decided to create a new blog. And not just that, I
+          wanted to build my own static site generator, just like Wesley did.
+          So, I spent my weekend cooking up this little project.
+        </p>
+        <p>
+          How does one build a SSG, you might ask? Well, it&#8217;s actually
+          fairly simple, because a lot of the building blocks are already out
+          there. For my project, I chose the
+          <a href="https://shopify.github.io/liquid/"
+            >Liquid templating language</a
+          >. Luckily, there&#8217;s already an amazing Javascript library for
+          using Liquid out there, called
+          <a href="https://liquidjs.com">LiquidJS</a>. The same goes for
+          <a href="https://www.npmjs.com/package/js-yaml">YAML parsing</a> and
+          Markdown (using
+          <a href="https://github.com/audiodude/gemdown">gemdown</a> and
+          <a href="https://marked.js.org">marked</a> respectively).
+        </p>
+        <p>
+          Consequently, after glueing together a bunch of libraries that other
+          people wrote, I ended up with something like this:
+        </p>
+        <pre><code class="language-javascript">// This code snippet is greatly simplied,
+// but the general flow is like this.
+
+let globalVariables = readGlobalConfigFile();
+
+let contentFiles = 
+  getAllFilesWithExtension(".txt").map(mergeFrontmatterWithGlobalVariables);
+
+for (const output in directoriesIn("templates")) {
+  let template = parseDefaultTemplateFor(output);
+  let pages = [];
+
+  for(file in files.filter((f) => !isIndex(f))) {
+    let destPath = generateDestinationPath(file, path.extname(template.path));
+    let parsedMarkdown = parseMarkdown(template, getContent(file));
+    let variables = { url: destPath, content_rendered: parsedMarkdown, ...variables };
+
+    pages.append(variables);
+
+    let finalContent = renderTemplate(template, variables);
+    writeToFile(finalContent, output, destPath);
+  }
+  
+  for(file in files.filter((f) => !isIndex(f))) {
+    let destPath = generateDestinationPath(file, path.extname(template.path));
+    let parsedMarkdown = parseMarkdown(template, getContent(file));
+    let variables = { url: destPath, content_rendered: parsedMarkdown, pages: pages, ...variables };
+
+    let finalContent = renderTemplate(template, variables);
+    writeToFile(finalContent, output, destPath);
+  }
+
+  copyOverStaticFiles(output);
+}
+</code></pre>
+        <p>Yup. It&#8217;s that simple.</p>
+        <p>
+          I settled on calling it <code>chop</code>, because I hoped it would be
+          semi-fast (in dutch &#8220;chop chop&#8221; is a way to tell someone
+          to speed things up).
+        </p>
+        <p>The initial version has these features:</p>
+        <ul>
+          <li>A global config file</li>
+          <li>Front Matter</li>
+          <li>Liquid templates</li>
+          <li>Static files</li>
+          <li>Multiple outputs (HTML, gemtext, RSS etc.)</li>
+          <li>Smartypants punctuation</li>
+          <li>Automatic image compression</li>
+          <li>
+            Render content as liquid templates (which allows you to use
+            variables and partials in content)
+          </li>
+          <li>Prefixing relative URLs (in content).</li>
+        </ul>
+        <p>But I&#8217;m planning to add quite a bit more:</p>
+        <ul>
+          <li>Syntax highlighting</li>
+          <li>Automatic hashes in filenames for CSS</li>
+          <li>Integration with <code>git</code> (for file history)</li>
+        </ul>
+        <p>
+          I&#8217;m not building this to be extendible or modular. Instead, this
+          should stay a relatively simple script that just does what
+          <em>I</em> want it to do. If <em>you</em> want to build something
+          else, go for it!
+        </p>
+        <p>
+          So yea. Writing <code>chop</code> was quite fun, and I&#8217;m
+          definitely happy with the end result!
+        </p>
+        <p>
+          <a href="https://git.dupunkto.org/~robin/libre0b11/chop"
+            >Source code</a
+          >
+        </p>
+      </div>
+
+      <footer>
+        <p>
+          Posted on
+
+          <a class="u-url" href="https://geheimesite.nl/writing-my-own-ssg">
+            <time class="dt-published" datetime="2023-10-16">
+              Oct 16, 2023
+            </time>
+          </a>
+        </p>
+
+        <p class="reply-by-email">
+          <a
+            href="mailto:hello@geheimesite.nl?subject=RE:%20“Writing+my+own+SSG”"
+          >
+            Reply by email
+          </a>
+        </p>
+      </footer>
+    </main>
+
+    <footer>
+      <p>
+        Made with ♡ in the Netherlands. Copying is an act of love. Please copy.
+      </p>
+    </footer>
+  </body>
+</html>

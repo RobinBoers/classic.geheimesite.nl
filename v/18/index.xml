@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>geheimesite.nl</title>
+    <link>https://geheimesite.nl</link>
+    
+      <language>en</language>
+    
+    <description>TL;DR I'm a teenager from the Netherlands who enjoys programming.</description>
+    
+      
+    
+    <atom:link href="https://geheimesite.nl/index-en.xml" rel="self" type="application/rss+xml" />
+    <copyright>Made with ♡ in the Netherlands. Copying is an act of love. Please copy.</copyright>
+    <managingEditor>Robin Boers</managingEditor>
+    <webMaster>Robin Boers</webMaster>
+    <generator>Chop</generator>
+    
+    
+
+    
+      
+    
+
+    
+      <item>
+        <title>My own Search Engine..?</title>
+        <link>https://geheimesite.nl/search-engine</link>
+        <pubDate>17 Nov 2023 12:00:00 +0100</pubDate>
+        <guid>https://geheimesite.nl/search-engine</guid>
+        <description>
+          Is it just me, or have search results gotten [r......
+        </description>
+        <content:encoded>
+          <![CDATA[
+            <p>Is it just me, or have search results gotten <a href="https://dkb.blog/p/google-search-is-dying">really</a> <a href="https://thejollyteapot.com/2022/02/16/google-search-isn-t-very-good-and-yet-still-the-best-around">shitty</a>? When I search for something, the only <em>fucking</em> results that I get are AI generated SEO bullshit. And I&#8217;m done with it.</p>
+<p>I have been thinking about what I want a search engine to do. It should do basically this:</p>
+<ul>
+<li>
+<p>Search Wikipedia. <a href="https://en.wikipedia.org/wiki/Wikipedia:Database_download#English-language_Wikipedia">Apparently you can download the entirety of (English) Wikipedia in just 19GB</a> (compressed). This is excluding any page history/talk pages, and the dump doesn&#8217;t contain media. But still, 19GB is not that much. It expands to around 90GB, but I think that&#8217;s manageable if I run it on a local server.</p>
+</li>
+<li>
+<p>Crawl and index Stack Exchange sites. Think Stack Overflow, Server Fault, Super User, Unix &amp; Linux, Mathematics, and Ask Ubuntu.</p>
+</li>
+<li>
+<p>Optionally record my browsing history via a browser extension. This should be optional and contain a blacklist containing domains that shouldn&#8217;t be recorded &#8212; like search pages. Results from my own browser history should be less prominent.</p>
+</li>
+<li>
+<p>Crawl websites on the small web. If you&#8217;re wondering what the heck I&#8217;m talking about, this explanation from <a href="https://www.marginalia.nu/marginalia-search">Marginalia Search</a> describes it pretty well:</p>
+<blockquote>
+<p>Remember when you used to explore the Internet, when you used to discover cool little websites made by people and it wasn’t just a bunch of low effort content mill listicles and blog spam?<br>
+In recent years, something has been simmering: Some call it the “Small Internet”. I hesitate to call it a movement, that would imply a level of organization and intent that it does not possess. It’s a disjointed group of like-minded people that recognize that the Internet has lost a certain je ne sais quoi, it has turned from a wild and creative space, into more of shopping mall. Where ever you go, you’re prodded to subscribe to newsletters, to like and comment, to buy stuff.</p>
+</blockquote>
+<p>There&#8217;s a bunch of small indexes and search engines like this. I was planning to curate my own index, based on existing indexes. There should also be an option for people to submit sites.</p>
+</li>
+<li>
+<p>Index some prominent Linux-oriented wikis, like the Arch Wiki and Gentoo Wiki. They seem to run the same wiki software as Wikipedia, so maybe they have a download option as well?</p>
+</li>
+<li>
+<p>Searching man pages and RFCs seems cool?</p>
+</li>
+<li>
+<p>Support for bangs, like DuckDuckGo. I&#8217;d want <code>!g</code> for Whoogle results and <code>!y</code> for YouTube.</p>
+</li>
+</ul>
+<p>This hypothetical search engine would be mainly for personal use, but I wouldn&#8217;t mind putting it on a public domain if I were to build it.</p>
+          ]]>
+        </content:encoded>
+      </item>
+    
+      <item>
+        <title>Setting up a tilde</title>
+        <link>https://geheimesite.nl/tilde</link>
+        <pubDate>27 Oct 2023 12:00:00 +0100</pubDate>
+        <guid>https://geheimesite.nl/tilde</guid>
+        <description>
+          _This is a living document, describing my progr......
+        </description>
+        <content:encoded>
+          <![CDATA[
+            <p><em>This is a living document, describing my progress on setting up my own tilde/pubnix server. Keep in mind that this is very much a Work-In-Progress(tm).</em></p>
+<p>So, I decided I wanted to host my own pubnix/tilde (I still don&#8217;t know what to call it LMAO). Basically, it&#8217;s gonna be a server where members can log in via SSH to collaborate on code, experiment with Linux and play around on the CLI.</p>
+<p>I described the main idea in my previous post, so go read that if you&#8217;re interested.</p>
+<h2 id="creating-an-account">Creating an account</h2>
+<p>After I set up the root account of my Debian server and logged in, I added my own account, and gave myself root privileges:</p>
+<pre><code class="language-sh">adduser robin
+usermod -aG members robin # group that all members will be in
+usermod -aG sudo robin
+</code></pre>
+<p>I also turned off root login over SSH in <code>/etc/ssh/sshd_config</code>:</p>
+<pre><code class="language-conf">PermitRootLogin no
+</code></pre>
+<p>And finally I set the timezone and hostname:</p>
+<pre><code class="language-sh">timedatectl set-timezone Europe/Amsterdam
+hostnamectl set-hostname dupunkto.org
+</code></pre>
+<h2 id="welcome-messages">Welcome messages</h2>
+<p>I wanted a nice welcome message to be printed when logging in, instead of the garbage that was printed before. I started out by emptying <code>/etc/motd</code>, and then disabling all scripts in <code>/etc/update-motd.d</code>.</p>
+<p>I added a few new scripts in <code>/etc/update-motd.d</code>. The first two digits specify the order that the files get executed in. I added two files:</p>
+<pre><code class="language-sh">sudoedit /etc/update-motd.d/05-welcome
+sudo chmod +x /etc/update-motd.d/05-welcome
+sudoedit /etc/update-motd.d/10-currently-online
+sudo chmod +x /etc/update-motd.d/10-currently-online
+</code></pre>
+<pre><code class="language-sh">#!/bin/sh
+
+echo "Welcome to {du}punkto, a simple invite-only pubnix!"
+echo "We hope you enjoy your stay here :)"
+echo
+</code></pre>
+<pre><code class="language-sh">#!/bin/sh
+
+echo "These users are currently online:"
+echo "you"
+users | tr ' ' \\n | uniq
+
+echo
+</code></pre>
+<h2 id="member-directories">Member directories</h2>
+<p>I wanted members to have a nice default config when they joined, so I editted some files in <code>/etc/skel</code>:</p>
+<pre><code class="language-sh">sudoedit /etc/skel/.bashrc
+</code></pre>
+<pre><code class="language-bash"># ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# Don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# Append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# Check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# If the terminal used specifies colors, set a fancy prompt
+case "$TERM" in
+    xterm-color|*-256color) colors=yes;;
+esac
+
+# Set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] &amp;&amp; [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+if [ "$colors" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+
+# Color support in ls and other utils
+if [ "$colors" = yes ]; then
+    test -r ~/.dircolors &amp;&amp; eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias dir='dir --color=auto'
+    alias grep='grep --color=auto'
+fi
+
+# Colored GCC warnings and errors
+
+alias ll='ls -l'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..="cd .."
+alias rm="rm -r" # Allow to remove directories
+alias cp="cp -i" # Warn before overwriting existing files
+alias mv="mv -i"
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# Enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+</code></pre>
+<h2 id="setting-up-gemini-hosting">Setting up Gemini hosting</h2>
+<p>I wanted members to be able to host Gemini sites, by putting <code>.gmi</code> files in the <code>pub/gem</code> directory.</p>
+<p>After a bit of searching I found the <a href="https://tildegit.org/solderpunk/molly-brown">molly-brown</a> server, which does exactly what I want. One <code>go install ...</code> later, I copied it to <code>/usr/local/bin</code>.</p>
+<p>It is very straight forward to setup. First generate a TLS cert (as root):</p>
+<pre><code class="language-bash">openssl req -x509 -out /etc/molly.crt -keyout /etc/molly.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -days 36500 \
+  -subj '/CN=localhost' -extensions EXT -config &lt;( \
+   printf "[dn]\nCN=dupunkto.org\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:dupunkto.org,DNS:git.dupunkto.org\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+</code></pre>
+<p>Then edit the <code>/etc/molly.conf</code>:</p>
+<pre><code class="language-toml">Port = 1965
+Hostname = "dupunkto.org"
+DocBase = "/var/gemini/"
+HomeDocBase = "users"
+CertPath = "/etc/molly.crt"
+KeyPath = "/etc/molly.key"
+
+DirectoryListing = true
+DirectorySubdirsFirst = true
+</code></pre>
+<p>I also created a user for it:</p>
+<pre><code class="language-sh">adduser --system --group --no-create-home --shell /usr/sbin/nologin --comment "Molly gemini server" molly
+sudo chown molly:molly /etc/molly.*
+</code></pre>
+<p>However, I don&#8217;t want members to have to edit files in <code>/var/gemini/users/username</code>, I want them to have <code>pub/gem</code>. Luckily ChatGPT came up with this wonderful script that symlinks <code>~/pub/gem</code> to the corresponding directory in <code>/var/gemini</code>:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+web_base_dir="/var/gemini/users"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  web_dir="$web_base_dir/$username"
+  
+  if [ ! -d "$web_dir" ]; then
+    mkdir -m 0755 -p "$web_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$web_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -d "/home/$username/pub" ]; then
+    mkdir -p "/home/$username/pub" 
+  fi
+
+  if [ ! -h "/home/$username/pub/gem" ]; then
+    ln -s "$web_dir" "/home/$username/pub/gem"
+  fi
+
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+<p>The only thing left to do, is to setup a systemd unit and start the server. The <code>molly-brown</code> repo already provided a service file, which I gratefully copied:</p>
+<pre><code class="language-toml">[Unit]
+Description=Molly Brown gemini server
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=molly
+ExecStart=/usr/local/bin/molly-brown -c /etc/molly.conf
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>I put it in <code>/etc/systemd/system/molly-brown.service</code>. Then simply run: <code>systemctl enable molly-brown.service --now</code> (as root), and kadabing kadaboom. A gemini server.</p>
+<h2 id="webhosting">Webhosting</h2>
+<p>I also wanted normal webhosting, which would work the same as Gemini hosting, but uses the <code>pub/web</code> directory, instead of <code>pub/gem</code>. For that I chose <code>nginx</code>, which I installed with APT.</p>
+<pre><code class="language-sh">sudo apt install nginx libnginx-mod-http-fancyindex
+</code></pre>
+<p>I added this in <code>/etc/nginx/conf.d/01-userdirs.conf</code>:</p>
+<pre><code class="language-nginx">server {
+    server_name dupunkto.org;
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    # SSL configuration
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    charset utf-8;
+    gzip on;
+
+    root /var/www;
+
+    index index.html index.htm;  
+
+    fancyindex on;
+    fancyindex_header /header.html;
+    fancyindex_footer /footer.html;
+    fancyindex_ignore "header.html" "footer.html";
+    fancyindex_time_format "%Y-%m-%d";
+
+    try_files $uri $uri.html $uri.htm $uri/ =404; 
+
+    location ~ (README.?|\.md|\.gmi)$ {
+        default_type text/plain;
+    }
+
+    # Special config for me :)
+    location /~robin {
+        fancyindex_header /~robin/header.html;
+        try_files $uri $uri.html $uri/ =404;
+    }
+}
+</code></pre>
+<p>Again, I used a fancy script to symlink the directories:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+web_base_dir="/var/www"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  web_dir="$web_base_dir/~$username"
+
+  if [ ! -d "$web_dir" ]; then
+    mkdir -m 0755 -p "$web_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$web_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -d "/home/$username/pub" ]; then
+    mkdir -p "/home/$username/pub" 
+  fi
+
+  if [ ! -h "/home/$username/pub/web" ]; then
+    ln -s "$web_dir" "/home/$username/pub/web"
+  fi
+  
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+<p>Oh, and to setup SSL (as root):</p>
+<pre><code class="language-shell">apt install certbot python3-certbot-nginx
+certbot certonly -d dupunkto.org,git.dupunkto.org,ftp.dupunkto.org,dav.dupunkto.org,chat.dupunkto.org
+</code></pre>
+<p>If it says Nginx isn&#8217;t properly configured, that&#8217;s probably because it expects SSL to be there but it isn&#8217;t (yet). If so, just choose the &#8220;standalone server&#8221; option.</p>
+<p>I also added this to my <code>/etc/nginx/nginx.conf</code>, which I generated using the <a href="https://ssl-config.mozilla.org/#server=nginx&amp;version=1.22.1&amp;config=intermediate&amp;openssl=3.0.11&amp;hsts=false&amp;guideline=5.7">Mozilla SSL Configuration Generator</a>:</p>
+<pre><code class="language-nginx">include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+ssl_certificate /etc/letsencrypt/live/dupunkto.org/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/dupunkto.org/privkey.pem;
+ssl_trusted_certificate /etc/letsencrypt/live/dupunkto.org/chain.pem;
+
+# OCSP stapling
+ssl_stapling on;
+ssl_stapling_verify on;
+</code></pre>
+<h2 id="git-hosting">Git hosting</h2>
+<p>Setting up git hosting vas very straight forward after setting up Nginx. Just install <code>cgit</code> and edit the config file in <code>/etc/cgitrc</code>:</p>
+<pre><code class="language-ini">css=/custom.css
+logo=/dupunkto.png
+virtual-root=/
+
+# Dumb clones
+enable-http-clone=1
+clone-url= http://$HTTP_HOST/$CGIT_REPO_URL
+
+enable-subject-links=1
+enable-tree-linenumbers=1
+enable-commit-graph=1
+enable-blame=1
+enable-log-filecount=1
+enable-log-linecount=1
+enable-git-config=1
+enable-index-owner=0
+side-by-side-diffs=1
+summary-branches=5
+
+# Enable READMEs
+about-filter=/usr/local/lib/cgit/filters/about-formatting.sh
+source-filter=/usr/local/lib/cgit/filters/syntax-highlighting.py
+readme=:README.txt
+readme=:README.md
+readme=:README
+
+# Prevent spam
+noplainemail=1
+
+# Allow downloads
+snapshots=tar.gz zip
+
+branch-sort=age
+repository-sort=age
+
+root-title={du}punkto
+root-desc=git hosting for {du}puntko members
+
+robots=noindex, nofollow
+scan-path=/usr/local/git/repositories
+</code></pre>
+<p>I stole some CSS from <a href="https://git.oriole.systems/custom.css">https://git.oriole.systems/custom.css</a> and put it in <code>/usr/share/cgit</code>, along with a logo titled <code>dupunkto.png</code>.</p>
+<pre><code class="language-css">@import "cgit.css";
+
+html {
+	background-color: white;
+}
+
+* {
+	line-height: 1.35em;
+}
+
+@media (max-width: 480px) {
+	html {
+		font-size: 12px;
+	}
+}
+
+@media (min-width: 480px) {
+	html {
+		font-size: 13px;
+	}
+}
+
+@media (min-width: 786px) {
+	html {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 786px) {
+	div#cgit table#header td.logo {
+		display: none;
+	}
+}
+
+@media (min-width: 992px) {
+	html {
+		font-size: 15px;
+	}
+}
+
+@media (min-width: 1200px) {
+	html {
+		font-size: 16px;
+	}
+}
+
+@media (min-width: 1600px) {
+	html {
+		font-size: 18px;
+	}
+}
+
+div#cgit {
+	/*font-family: monospace;*/
+	font-size: 1em;
+}
+
+pre, div#cgit table.diff td, div#cgit table.ssdiff td {
+	font-size: 1.1em;
+	font-family: monospace;
+}
+
+code {
+	font-family: inherit;
+}
+
+#summary code {
+	font-family: monospace;
+}
+
+div#cgit div.commit-msg {
+	font-family: monospace;
+}
+
+div#cgit a.ls-blob, div#cgit a.ls-dir, div#cgit .ls-mod, div#cgit td.ls-mode, div#cgit td.ls-size {
+	font-family: monospace;
+}
+
+div#cgit table.list td.commitgraph, div#cgit table.list td.logmsg, div#cgit table.list td.logsubject{
+	font-family: monospace;
+}
+
+div#cgit .sha1 {
+	font-family: monospace;
+}
+
+div#cgit table.ssdiff td {
+	font-size: 14px;
+}
+
+.highlight pre {
+	font-size: inherit;
+}
+
+div#cgit .commit-subject, div#cgit div#summary {
+	max-width: 80ch;
+}
+
+div#cgit div.footer, div#cgit div.footer a {
+	color: #aaa;
+}
+
+div#cgit table.list tr:nth-child(even) {
+	background: inherit;
+}
+
+div#cgit table.list tr:hover {
+	background: inherit;
+}
+
+div#cgit table.list tr.nohover-highlight:hover:nth-child(even) {
+	background: inherit;
+}
+
+div#cgit table.commit-info th {
+	color: #888;
+}
+
+div#cgit table.blob td.linenumbers a:target {
+	color: white;
+	background-color: black;
+}
+
+div#cgit table.list td a.ls-dir {
+	font-weight: normal;
+}
+
+div#cgit table.tabs td.form form, div#cgit table#header td.form {
+	padding-bottom: 4px;
+}
+
+td.logo img {
+	width: 100%;
+	border-radius: 15px;
+}
+
+table.head, table.foot { width: 100%; }
+td.head-rtitle, td.foot-os { text-align: right; }
+td.head-vol { text-align: center; }
+div.Pp { margin: 1ex 0ex; }
+div.Nd, div.Bf, div.Op { display: inline; }
+span.Pa, span.Ad { font-style: italic; }
+span.Ms { font-weight: bold; }
+dl.Bl-diag > dt { font-weight: bold; }
+code.Nm, code.Fl, code.Cm, code.Ic, code.In, code.Fd, code.Fn,
+code.Cd { font-weight: bold; font-family: inherit; }
+
+table.Nm td:first-child { padding-right: 1ch; }
+code.Fl { white-space: nowrap; }
+span.RsT { font-style: italic; }
+dl.Bl-tag:not(.Bl-compact) dt { margin-top: 1em; }
+ul.Bl-bullet:not(.Bl-compact) li { margin-top: 1em; }
+div.Bd-indent { margin-left: 4ch; }
+table.Bl-column { width: 100%; }
+table.foot { margin-top: 1em; }
+table.tbl td:not(:last-child) { border-right: solid 1px; }
+table.tbl tr:first-child { border-bottom: 2px solid black; }
+table.tbl td { padding: 0 1em; }
+
+div.manual-text a.Xr {
+	color: inherit !important;
+}
+
+div.manual-text a.Xr:hover {
+	text-decoration: none !important;
+}
+</code></pre>
+<p>I then created the <code>/var/git</code> and <code>/var/git/repositories</code> directories, and ran an adaptation of the script used to setup gemini hosting:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# Define the base directory for repositories
+repo_base_dir="/var/git/repositories"
+
+# Loop through all the user directories in the 'members' group
+for username in $(getent group members | cut -d: -f4 | tr ',' ' '); do
+  # Create the repository directory with the user's permissions
+  repo_dir="$repo_base_dir/~$username"
+
+  if [ ! -d "$repo_dir" ]; then
+    mkdir -m 0755 -p "$repo_dir"
+  fi
+
+  # Ensure that the directory is owned by the user
+  chown $username:$username "$repo_dir"
+
+  # Create a symbolic link to the user's home directory
+  if [ ! -h "/home/$username/git" ]; then
+    ln -s "$repo_dir" "/home/$username/git"
+  fi
+
+  echo "Created directory and symlink for $username."
+done
+
+echo "Symlink creation completed."
+</code></pre>
+<p>You also need a package called <code>fcgiwrap</code>, just install it and then run:</p>
+<pre><code class="language-sh">systemctl enable fcgiwrap --now
+</code></pre>
+<p>And I added the relevant section to my Nginx config (<code>/etc/nginx/conf.d/02-git.conf</code>):</p>
+<pre><code class="language-nginx">server {
+    server_name  git.dupunkto.org;
+
+    listen 80;
+    listen [::]:80;
+
+    # SSL configuration
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    access_log  /var/log/nginx/cgit-access.log;
+    error_log   /var/log/nginx/cgit-error.log;
+
+    root /usr/share/cgit;
+    try_files $uri @cgit;
+
+    location @cgit {
+        include          fastcgi_params;
+        fastcgi_param    SCRIPT_FILENAME /usr/lib/cgit/cgit.cgi;
+        fastcgi_pass     unix:/run/fcgiwrap.socket;
+
+        fastcgi_param    PATH_INFO    $uri;
+        fastcgi_param    QUERY_STRING $args;
+        fastcgi_param    HTTP_HOST    $server_name;
+    }
+}
+</code></pre>
+<h3 id="notes-on-git">Notes on Git</h3>
+<p>For some reason, the repositories I exported from Gitea all contained a file called &#8220;description&#8221;, which contained a long message telling you to edit it. cgit automatically uses the contents of this file as repo description. If you remove the files, it just shows &#8220;[no description]&#8221;, which is way cleaner in my opinion.</p>
+<pre><code class="language-sh">find . -type f -name "description" -exec rm -r {} \;
+</code></pre>
+<p><em>Edit: this is normal. When you initialize a bare Git repo, this file will always be created (at least for me). I decided to delete it and use the <code>[gitweb]</code> section in <code>.config</code> instead.</em></p>
+<p>Also, for READMEs to work, you have to install these dependencies:</p>
+<pre><code class="language-sh">sudo apt install python3-markdown python3-docutils groff
+</code></pre>
+<p>And, last of all, for mirroring your repos to Codeberg, I will post something very soon.</p>
+<h2 id="security">Security</h2>
+<p>I installed the UFW firewall:</p>
+<pre><code class="language-sh">sudo apt install ufw
+ufw allow 20/tcp # SSH
+ufw allow 80/tcp # HTTP
+ufw allow 443/tcp # SSL
+ufw allow 1965/tcp # Gemini
+ufw allow 8448/tcp # Matrix (federation)
+ufw allow 5222/tcp # XMPP
+ufw allow 5223/tcp # XMPP SSL
+ufw allow 5296/tcp # XMPP server
+ufw allow 8010/tcp # XMPP file transfers
+ufw enable
+</code></pre>
+<p>I also installed <code>fail2ban</code>, which automatically bans bots spamming port 20:</p>
+<pre><code class="language-sh">sudo apt install fail2ban
+systemctl enable --now fail2ban
+</code></pre>
+<h2 id="admin-permissions">Admin permissions</h2>
+<p>I created the group <code>mod</code> and gave it write permissions over <code>/var/www</code> and <code>/var/gemini</code>, for maintaining the website from a non-sudo account.</p>
+<pre><code class="language-sh">addgroup mod
+usermod -aG mod &lt;username>
+chown root:mod &lt;somedirectory>
+chmod g+w &lt;somedirectory>
+</code></pre>
+<h2 id="credits">Credits</h2>
+<p>These articles helped a lot:</p>
+<ul>
+<li><a href="https://bryanbrattlof.com/cgit-nginx-gitolite-a-personal-git-server/">https://bryanbrattlof.com/cgit-nginx-gitolite-a-personal-git-server/</a></li>
+<li><a href="https://www.edwinwenink.xyz/posts/47-tilde_server/#setting-up-a-usedir-web-server-with-nginx">https://www.edwinwenink.xyz/posts/47-tilde_server/#setting-up-a-usedir-web-server-with-nginx</a></li>
+</ul>
+          ]]>
+        </content:encoded>
+      </item>
+    
+      <item>
+        <title>Thinking about running a tilde/pubnix</title>
+        <link>https://geheimesite.nl/thinking-about-tilde</link>
+        <pubDate>23 Oct 2023 12:00:00 +0100</pubDate>
+        <guid>https://geheimesite.nl/thinking-about-tilde</guid>
+        <description>
+          I&#8217;m thinking about running my own pubnix/......
+        </description>
+        <content:encoded>
+          <![CDATA[
+            <p>I&#8217;m thinking about running my own pubnix/tilde. It would be invite-only and have a bunch of cool things:</p>
+<ul>
+<li>git hosting with cgit or sourcehut</li>
+<li>gemini hosting</li>
+<li>web hosting</li>
+<li>gopher hosting</li>
+<li>FTP access</li>
+<li>about 2GB of storage</li>
+<li>matrix accounts + chat portal (Hydrogen seems cool)</li>
+<li>internal message board/email?</li>
+<li>maybe a CardDAV server?</li>
+</ul>
+<p>I think it would be a very cool opportunity to learn a bit about Linux and the internet. However, I literally have <em>no clue</em> how to set this up. I found this comment on Reddit:</p>
+<blockquote>
+<p>It happens that you&#8217;re trying to build a tilde/pubnix? From my experience, tilde admins often give direct access to the system, but with proper permission elevation. Create a user group with limited permission (i.e. no sudo, disable specific softwares) and add their usernames to, give them a space in /home. Secondly, disable SSH password, ask them to send you their public keys and only authenticate via public key. Finally, write a good/strict policy but also send welcoming message. Also, you can look for further security practices, like changing default port, etc. but the key thing is proper user permission.</p>
+</blockquote>
+<p>That&#8217;s what I want. I was thinking about allowing password logins tho. I already have a VPS, which I want to reinstall to turn into this thing.</p>
+<p>I basically want to configure the services in a way, that they all depend on Unix accounts. That way I can create a Unix account with suitable permissions for every member, and shit should Just Work(tm).</p>
+<p>So, I was thinking:</p>
+<ul>
+<li>Exposing all git repos in <code>~/git/</code> at the URL <code>http(s)://git.example.com/~user/</code> (using cgit) and <code>gemini://git.example.com/~user/</code> (using git.gmi)</li>
+<li>Exposing <code>~/pub/gem/</code> at <code>gemini://example.com/~user/</code></li>
+<li>Exposing <code>~/pub/web/</code> at <code>http(s)://example.com/~user/</code></li>
+<li>Exposing <code>~/pub/goph/</code> at <code>gopher://example.com/~user/</code></li>
+<li>Creating <code>@user:example.com</code> matrix account with the same password as Unix. Changing the Unix password will also change the matrix password and changing the password from a matrix client should not be allowed.</li>
+<li>Hosting Hydrogen (matrix client) at <code>https://chat.example.com</code></li>
+<li>Maybe host a CardDAV server with an account for every member, similar to what I want for matrix?</li>
+<li>Maybe a Lemmy instance (with mlmym as frontend), same thing with accounts.</li>
+</ul>
+<p>Any pointers on how to setup something like this? How would I handle backups? (I know I can just backup all files in every member&#8217;s home directory, but how would I handle something more complicated, like the matrix accounts?). How would I make something like this secure?</p>
+<p>Edit: I found this blogpost that helps a bit, but it doesn&#8217;t tell me how to do permissions, limiting home directory size and bandwidth. I guess I won&#8217;t really need those (because this is gonna be <em>really</em> small scale), but I like the idea that someone can&#8217;t just accidentally use up all bandwidth with a wrong command.</p>
+<ul>
+<li><a href="https://www.edwinwenink.xyz/posts/47-tilde_server">Setting up your own tilde club (UNIX)</a></li>
+</ul>
+          ]]>
+        </content:encoded>
+      </item>
+    
+      <item>
+        <title>Writing my own SSG</title>
+        <link>https://geheimesite.nl/writing-my-own-ssg</link>
+        <pubDate>16 Oct 2023 12:00:00 +0100</pubDate>
+        <guid>https://geheimesite.nl/writing-my-own-ssg</guid>
+        <description>
+          A few days ago, I discovered the Gemini protoco......
+        </description>
+        <content:encoded>
+          <![CDATA[
+            <p>A few days ago, I discovered the Gemini protocol. I heard about it a while back already, but I didn&#8217;t pay that much attention and failed to notice it.</p>
+<p>So, naturally, I was REALLY excited about this cool new toy. I downloaded about four different clients/browsers to see which one I liked the best (it turned out to be <a href="/v/18//gmi.skyjake.fi/lagrange/">Lagrange</a>), and immediately thought about porting my website to it. Small problem however: my site is built using <a href="https://gohugo.io">Hugo</a>.</p>
+<p>And I <em>love</em> Hugo. It&#8217;s fast. It&#8217;s easy. It&#8217;s powerful. It&#8217;s fast. Did I mention that it&#8217;s fast? However, Hugo is also really centered around HTML files. And to make matters worse, my site is really complicated. It interacts with multiple things on <code>api.geheimesite.nl</code>, renders RSS feeds, downloads images, does fancy resource things.</p>
+<p>In short, porting it over was gonna be <em>really hard</em>. So, instead of breaking my brain over porting my primary website, I took a look at my blog. Just like my website, my blog is built using Hugo. Because I do really like Hugo a lot. So, after a quick bit of Googling, I found out that I could <a href="https://sylvaindurand.org/gemini-and-hugo/">add an output to Hugo</a>. But what would be the fun of that, eh?</p>
+<p>And to be honest, I&#8217;ve been wanting to build another blog for a while now. Actually, I already bought a domain for it 4 months back. Initially, I built it like a text-based system. I wrote a little PHP script that handled the HTTP <code>PUT</code> verb, which meant I could do cool things like this:</p>
+<pre><code class="language-shell">curl http://example.com/essay.txt --upload-file essay.txt -u robin:password
+</code></pre>
+<p>All files would be served as <code>text/plain</code>, and hyperlinks would be added on separate lines, where you could easily copy and paste them. Sounds familiar, right?</p>
+<p>I also got very hyped when I found <a href="https://notebook.wesleyac.com">Wesley&#8217;s notebook</a> a while back. It&#8217;s such a simple, sleek and beautiful website. And the cool thing is that he completely wrote the thing using POSIX-complaint shell scripts, with almost no dependencies. In addition to one of the prettiest designs I&#8217;ve seen in a while, it also has a bunch of cool features:</p>
+<ul>
+<li>Deep linking</li>
+<li>Very cool 404 page</li>
+<li>Images are automatically compressed</li>
+<li>Builtin <code>git</code> history with links to diffs</li>
+</ul>
+<p>So, of course, I decided to create a new blog. And not just that, I wanted to build my own static site generator, just like Wesley did. So, I spent my weekend cooking up this little project.</p>
+<p>How does one build a SSG, you might ask? Well, it&#8217;s actually fairly simple, because a lot of the building blocks are already out there. For my project, I chose the <a href="https://shopify.github.io/liquid/">Liquid templating language</a>. Luckily, there&#8217;s already an amazing Javascript library for using Liquid out there, called <a href="https://liquidjs.com">LiquidJS</a>. The same goes for <a href="https://www.npmjs.com/package/js-yaml">YAML parsing</a> and Markdown (using <a href="https://github.com/audiodude/gemdown">gemdown</a> and <a href="https://marked.js.org">marked</a> respectively).</p>
+<p>Consequently, after glueing together a bunch of libraries that other people wrote, I ended up with something like this:</p>
+<pre><code class="language-javascript">// This code snippet is greatly simplied,
+// but the general flow is like this.
+
+let globalVariables = readGlobalConfigFile();
+
+let contentFiles = 
+  getAllFilesWithExtension(".txt").map(mergeFrontmatterWithGlobalVariables);
+
+for (const output in directoriesIn("templates")) {
+  let template = parseDefaultTemplateFor(output);
+  let pages = [];
+
+  for(file in files.filter((f) => !isIndex(f))) {
+    let destPath = generateDestinationPath(file, path.extname(template.path));
+    let parsedMarkdown = parseMarkdown(template, getContent(file));
+    let variables = { url: destPath, content_rendered: parsedMarkdown, ...variables };
+
+    pages.append(variables);
+
+    let finalContent = renderTemplate(template, variables);
+    writeToFile(finalContent, output, destPath);
+  }
+  
+  for(file in files.filter((f) => !isIndex(f))) {
+    let destPath = generateDestinationPath(file, path.extname(template.path));
+    let parsedMarkdown = parseMarkdown(template, getContent(file));
+    let variables = { url: destPath, content_rendered: parsedMarkdown, pages: pages, ...variables };
+
+    let finalContent = renderTemplate(template, variables);
+    writeToFile(finalContent, output, destPath);
+  }
+
+  copyOverStaticFiles(output);
+}
+</code></pre>
+<p>Yup. It&#8217;s that simple.</p>
+<p>I settled on calling it <code>chop</code>, because I hoped it would be semi-fast (in dutch &#8220;chop chop&#8221; is a way to tell someone to speed things up).</p>
+<p>The initial version has these features:</p>
+<ul>
+<li>A global config file</li>
+<li>Front Matter</li>
+<li>Liquid templates</li>
+<li>Static files</li>
+<li>Multiple outputs (HTML, gemtext, RSS etc.)</li>
+<li>Smartypants punctuation</li>
+<li>Automatic image compression</li>
+<li>Render content as liquid templates
+(which allows you to use variables and partials in content)</li>
+<li>Prefixing relative URLs (in content).</li>
+</ul>
+<p>But I&#8217;m planning to add quite a bit more:</p>
+<ul>
+<li>Syntax highlighting</li>
+<li>Automatic hashes in filenames for CSS</li>
+<li>Integration with <code>git</code> (for file history)</li>
+</ul>
+<p>I&#8217;m not building this to be extendible or modular. Instead, this should stay a relatively simple script that just does what <em>I</em> want it to do. If <em>you</em> want to build something else, go for it!</p>
+<p>So yea. Writing <code>chop</code> was quite fun, and I&#8217;m definitely happy with the end result!</p>
+<p><a href="https://git.dupunkto.org/~robin/libre0b11/chop">Source code</a></p>
+          ]]>
+        </content:encoded>
+      </item>
+    
+  </channel>
+</rss>
+

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>
+      Thinking about running a tilde/pubnix — geheimesite.nl | Robin Boers
+    </title>
+
+    <meta
+      name="description"
+      content="I&amp;#8217;m thinking about running my own pubnix/tilde. It would be invite-only and have a bunch of cool things:- git hosting with cgit or sour......"
+    />
+
+    <link rel="canonical" href="https://geheimesite.nl/thinking-about-tilde" />
+
+    <link rel="icon" sizes="16x16" href="/v/18/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="16x16" href="/v/18/favicon.ico" />
+
+    <link rel="stylesheet" href="/v/18/main.css" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="primary feed, dutch"
+      href="https://geheimesite.nl/index-nl.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="less frequent posts, english"
+      href="https://geheimesite.nl/index-en.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="bilingual feed, dutch and english"
+      href="https://geheimesite.nl/index.xml"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/v/18/"> ← Back to the homepage </a>
+      </nav>
+    </header>
+
+    <main class="h-entry">
+      <h1 class="p-name">Thinking about running a tilde/pubnix</h1>
+
+      <div class="content p-summary e-content">
+        <p>
+          I&#8217;m thinking about running my own pubnix/tilde. It would be
+          invite-only and have a bunch of cool things:
+        </p>
+        <ul>
+          <li>git hosting with cgit or sourcehut</li>
+          <li>gemini hosting</li>
+          <li>web hosting</li>
+          <li>gopher hosting</li>
+          <li>FTP access</li>
+          <li>about 2GB of storage</li>
+          <li>matrix accounts + chat portal (Hydrogen seems cool)</li>
+          <li>internal message board/email?</li>
+          <li>maybe a CardDAV server?</li>
+        </ul>
+        <p>
+          I think it would be a very cool opportunity to learn a bit about Linux
+          and the internet. However, I literally have <em>no clue</em> how to
+          set this up. I found this comment on Reddit:
+        </p>
+        <blockquote>
+          <p>
+            It happens that you&#8217;re trying to build a tilde/pubnix? From my
+            experience, tilde admins often give direct access to the system, but
+            with proper permission elevation. Create a user group with limited
+            permission (i.e. no sudo, disable specific softwares) and add their
+            usernames to, give them a space in /home. Secondly, disable SSH
+            password, ask them to send you their public keys and only
+            authenticate via public key. Finally, write a good/strict policy but
+            also send welcoming message. Also, you can look for further security
+            practices, like changing default port, etc. but the key thing is
+            proper user permission.
+          </p>
+        </blockquote>
+        <p>
+          That&#8217;s what I want. I was thinking about allowing password
+          logins tho. I already have a VPS, which I want to reinstall to turn
+          into this thing.
+        </p>
+        <p>
+          I basically want to configure the services in a way, that they all
+          depend on Unix accounts. That way I can create a Unix account with
+          suitable permissions for every member, and shit should Just Work(tm).
+        </p>
+        <p>So, I was thinking:</p>
+        <ul>
+          <li>
+            Exposing all git repos in <code>~/git/</code> at the URL
+            <code>http(s)://git.example.com/~user/</code> (using cgit) and
+            <code>gemini://git.example.com/~user/</code> (using git.gmi)
+          </li>
+          <li>
+            Exposing <code>~/pub/gem/</code> at
+            <code>gemini://example.com/~user/</code>
+          </li>
+          <li>
+            Exposing <code>~/pub/web/</code> at
+            <code>http(s)://example.com/~user/</code>
+          </li>
+          <li>
+            Exposing <code>~/pub/goph/</code> at
+            <code>gopher://example.com/~user/</code>
+          </li>
+          <li>
+            Creating <code>@user:example.com</code> matrix account with the same
+            password as Unix. Changing the Unix password will also change the
+            matrix password and changing the password from a matrix client
+            should not be allowed.
+          </li>
+          <li>
+            Hosting Hydrogen (matrix client) at
+            <code>https://chat.example.com</code>
+          </li>
+          <li>
+            Maybe host a CardDAV server with an account for every member,
+            similar to what I want for matrix?
+          </li>
+          <li>
+            Maybe a Lemmy instance (with mlmym as frontend), same thing with
+            accounts.
+          </li>
+        </ul>
+        <p>
+          Any pointers on how to setup something like this? How would I handle
+          backups? (I know I can just backup all files in every member&#8217;s
+          home directory, but how would I handle something more complicated,
+          like the matrix accounts?). How would I make something like this
+          secure?
+        </p>
+        <p>
+          Edit: I found this blogpost that helps a bit, but it doesn&#8217;t
+          tell me how to do permissions, limiting home directory size and
+          bandwidth. I guess I won&#8217;t really need those (because this is
+          gonna be <em>really</em> small scale), but I like the idea that
+          someone can&#8217;t just accidentally use up all bandwidth with a
+          wrong command.
+        </p>
+        <ul>
+          <li>
+            <a href="https://www.edwinwenink.xyz/posts/47-tilde_server"
+              >Setting up your own tilde club (UNIX)</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <footer>
+        <p>
+          Posted on
+
+          <a class="u-url" href="https://geheimesite.nl/thinking-about-tilde">
+            <time class="dt-published" datetime="2023-10-23">
+              Oct 23, 2023
+            </time>
+          </a>
+        </p>
+
+        <p class="reply-by-email">
+          <a
+            href="mailto:hello@geheimesite.nl?subject=RE:%20“Thinking+about+running+a+tilde%2Fpubnix”"
+          >
+            Reply by email
+          </a>
+        </p>
+      </footer>
+    </main>
+
+    <footer>
+      <p>
+        Made with ♡ in the Netherlands. Copying is an act of love. Please copy.
+      </p>
+    </footer>
+  </body>
+</html>
