@@ -1,0 +1,104 @@
+@import url("base.css");
+
+/* Site-specific */
+
+body {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 7px;
+}
+
+@media (width >= 1000px) {
+  body {
+    margin-left: 12.5%;
+    margin-right: auto;
+    margin-top: 2em;
+  }
+}
+
+body > header nav a {
+  text-decoration: none;
+  font-size: 0.8em;
+}
+
+body > footer {
+  margin: 2em 0;
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+body > footer blockquote {
+  color: currentcolor;
+  padding: 0;
+  border: none;
+  margin: 0.3em 0;
+}
+
+body > footer blockquote a::after {
+  content: " ↗";
+}
+
+article footer {
+  margin: 2em 0;
+  border-top: 2px solid;
+  border-color: inherit;
+  font-size: 0.9em;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+article footer:has(.rss-only) {
+  border: 0;
+}
+
+article footer .rss-only {
+  background: #eee;
+  padding: 0.3em 0.6em;
+  border-radius: 2.5px;
+  font-size: 0.9em;
+  width: 100%;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  article footer .rss-only {
+    background-color: #444;
+  }
+}
+
+article footer p {
+  margin-bottom: 0;
+}
+
+/* stylelint-disable declaration-block-no-duplicate-properties */
+article footer .reply-by-email a,
+a.button,
+input.button {
+  text-decoration: none;
+  padding: 0.5em 1em;
+  background: black;
+  color: white;
+  background: CanvasText;
+  color: Canvas;
+}
+
+strong dfn,
+strong cite {
+  font-style: normal;
+}
+
+/* Printing */
+
+@media print {
+  body {
+    margin: 0;
+    width: 100%;
+  }
+
+  body > header,
+  article footer {
+    display: none !important;
+  }
+}

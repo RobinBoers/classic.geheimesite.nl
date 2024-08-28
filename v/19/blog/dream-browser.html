@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Google, please don't mess with my lovingly handcrafted HTML -->
+    <meta name="googlebot" content="notranslate" />
+
+    <title>The Next Stage of the Web Browser</title>
+    <link
+      rel="stylesheet"
+      href="/v/19/main.css?v=1aea3434b9359fd229c0b8a9d7d95eca" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="lil notes (RSS)"
+      href="https://classic.geheimesite.nl/v/19/index.xml" />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="lil notes (Atom)"
+      href="https://classic.geheimesite.nl/v/19/atom.xml" />
+    <link
+      rel="license"
+      href="https://creativecommons.org/publicdomain/zero/1.0/" />
+    <link
+      rel="pingback"
+      href="https://webmention.io/webmention?forward=https://api.geheimesite.nl/webmentions" />
+    <link rel="webmention" href="https://api.geheimesite.nl/webmentions" />
+    <link rel="canonical" href="https://classic.geheimesite.nl/v/19/blog/dream-browser" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/v/19/blog">← Back to the index</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <h1>The Next Stage of the Web Browser</h1>
+
+        <p>
+          In his post
+          <a href="/v/19//bandukwala.me/on-compositional-window-management/"
+            ><cite>On compositional window management</cite></a
+          >
+          Alexander Bandukwala explores ways in which window managers could be
+          improved. I can&#8217;t help but draw parallels to modern web
+          browsers. Applications reimplement the window managers due to the
+          limited feature set. Websites reimplement the web browser in the same
+          way.
+        </p>
+
+        <p>
+          <a href="/v/19/blog/web-sdk">I complained</a> in the past, that I want the
+          browser to be <em>just a document reader</em>. But let&#8217;s face
+          it; it&#8217;s not. It&#8217;s really just an SDK. But even for an
+          SDK, it&#8217;s pretty bad.
+        </p>
+
+        <p>
+          Websites keep reimplementing the browser using JS, because the browser
+          <em>sucks</em>. Despite all their fancy advertising and redesigns,
+          browser haven&#8217;t really evolved for the last decade. Yea,
+          they&#8217;ve implemented a bunch more ridiculous Javascript APIs, but
+          what real added value do they provide to the end-user?
+        </p>
+
+        <p>Here&#8217;s some things I&#8217;d want in my browser:</p>
+
+        <ul>
+          <li>
+            <p>
+              You know all those cookie popups everywhere? What if they were
+              just part of the browser? Currently, every website is allowed to
+              save cookies by default. There&#8217;s nothing preventing a
+              website from saving cookies anyway when you tap the tiny
+              &#8220;no&#8221; button. What if we reverse that? Whenever a
+              website tries to save cookies, the browser displays a standard
+              popup with a clear &#8220;no&#8221; button that actually
+              <em>denies the cookies</em>.
+            </p>
+          </li>
+
+          <li>
+            <p>
+              You know how websites have those complicated menus? Yea, what if
+              my browser just scraped their <code>sitemap.xml</code> and
+              compiled a convient index of the site for me?
+            </p>
+          </li>
+
+          <li>
+            <p>
+              And while we&#8217;re at it, why not render a table of contents
+              for every page? You know, those things Wikipedia and numerous
+              other sites are now inserting into their HTML, because our
+              document readers&#8212;oh sorry, I meant universal
+              SDKs&#8212;still don&#8217;t have this feature?
+            </p>
+          </li>
+
+          <li>
+            <p>
+              You know how links you&#8217;ve already visited turn purple
+              (unless the website overrides it). What if we would indicate the
+              target location of the link in a similar way? Links to other pages
+              on the same site would stay as-is, but outgoing links would get
+              some kind of extra indication. Also, it would be nice to know the
+              page size of the target page upfront, especially on metered
+              connections.
+            </p>
+          </li>
+
+          <li>
+            <p>
+              Also
+              <a href="/v/19/blog/hotfox"
+                >bringing back RSS discovery and subscriptions</a
+              >
+              <em>properly</em> would be pretty nice!
+            </p>
+          </li>
+
+          <li>
+            <p>
+              Having publishing built into the browser would truly democratize
+              the Web. Instead of the convoluted form-based UIs we could have a
+              simple HTML editor builtin that could publish using
+              <a href="/v/19//developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT"
+                >HTTP PUT</a
+              >
+              if the target server supports it.
+            </p>
+          </li>
+
+          <li>
+            <p>
+              Imagine if supporting writers and other creative people was
+              built-in to the Web? A browser-native button to send the author of
+              the page/media element a few bucks would allow creators to
+              passively earn money by creating cool stuff. Maybe we could put
+              <a href="/v/19//developer.mozilla.org/en-US/docs/Web/HTTP/Status/402"
+                >HTTP 402</a
+              >
+              <i>Payment Required</i> to good use?
+            </p>
+          </li>
+
+          <li>
+            <p>
+              And finally, how about actually useful building blocks for
+              applications, instead of this JS+form madness we have now? The
+              idea of building up the interface using a markup language such as
+              HTML or XML is very good, but what if we could also utilize
+              OS-native components in our designs?
+            </p>
+          </li>
+        </ul>
+
+        <p>
+          Could somebody at Google or Mozilla maybe pretty please make (some of)
+          this reality? /hj
+        </p>
+
+        <footer>
+          <p>
+            Posted on
+            <a href="/v/19//roblog.nl/blog/dream-browser">
+              <time datetime="2024-05-31">May 31, 2024</time>
+            </a>
+          </p>
+
+          <p class="reply-by-email">
+            <a href="mailto:replies@roblog.nl">Reply by email</a>
+          </p>
+        </footer>
+      </article>
+    </main>
+
+    <footer>
+      Made with ♡ in the Netherlands. Copying is an act of love. Please copy.
+    </footer>
+  </body>
+</html>
