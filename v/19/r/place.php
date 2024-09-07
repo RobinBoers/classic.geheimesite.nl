@@ -154,11 +154,11 @@ function save_canvas($canvas) {
       </table>
     </main>
 
-    <script src="/r/place.js" integrity="sha384-iDekUgLzyxmdF/VjLp3Eh8XdQMDov4wPe+wpYv+0psDbHRejM0AXlknJVp310CVX" crossorigin="anonymous"></script>
+    <script src="/v/19/r/place.js" integrity="sha384-iDekUgLzyxmdF/VjLp3Eh8XdQMDov4wPe+wpYv+0psDbHRejM0AXlknJVp310CVX" crossorigin="anonymous"></script>
 
     <footer>
       <p>
-        Built with love at <a href="/v/19//dupunkto.org">{du}punkto</a>. 
+        Built with love at <a href="//dupunkto.org">{du}punkto</a>. 
         All wrongs deserved. This site is not affiliated with Reddit.
       </p>
     </footer>
