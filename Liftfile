@@ -1,0 +1,5 @@
+name: classic.geheimesite.nl
+host: nov
+type: static
+src: .
+target: /volume1/www/classic.geheimesite.nl
