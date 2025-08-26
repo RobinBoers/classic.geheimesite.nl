@@ -1,5 +1,6 @@
 name: classic.geheimesite.nl
-host: nov
 type: static
+host: nov
 src: .
-target: /volume1/www/classic.geheimesite.nl
+exclude:
+- README.md
