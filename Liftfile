@@ -3,5 +3,5 @@ type: static
 host: nov
 src: .
 exclude:
-- index.html
 - README.md
+- /index.html
