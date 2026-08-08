@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- Google, please don't mess with my lovingly handcrafted HTML -->
+<meta name="googlebot" content="notranslate">
+
+<link rel="canonical" href="https://geheimesite.nl">
+<link rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/">
+<link rel="stylesheet" href="/v/22/main.css" type="text/css">
+
+<title>Robin (aka axcelott)</title>
+
+<link rel="shortcut icon" href="/v/22/favicon.ico">
+
+    <!-- IndieWeb compatibility -->
+    <link rel="webmention" href="https://api.geheimesite.nl/webmentions">
+    <link rel="pingback" href="https://api.geheimesite.nl/pingback">
+    <link rel="authorization_endpoint" href="https://nym.dupunkto.org">
+    <link rel="token_endpoint" href="https://tokens.indieauth.com/token">
+
+    <!-- RSS, because it's amazing -->
+    <link rel="alternate" type="application/rss+xml" title="lil notes (RSS)" href="https://geheimesite.nl/index.xml">
+    <link rel="alternate" type="application/atom+xml" title="lil notes (Atom)" href="https://geheimesite.nl/atom.xml">
+    <link rel="alternate" type="application/feed+json" title="lil notes (JSON)" href="https://geheimesite.nl/feed.json">
+
+    <!-- Elsewhere on the Web: -->
+    <link rel="me" href="https://dupunkto.org/~axcelott">
+    <link rel="me" href="https://git.dupunkto.org/axcelott">
+    <link rel="me" href="https://github.com/RobinBoers">
+    <link rel="me" href="https://codeberg.org/RobinBoers">
+    <link rel="me" href="https://linkedin.com/in/robin-boers">
+    <link rel="me" href="https://instagram.com/oblivxi0us">
+    <link rel="me" href="https://snapchat.com/@oblivxi0us">
+
+    <!-- Homepage-specific CSS (might be dirty, but hey! it works :) -->
+    <style>
+      h2 {
+        border: none;
+        padding: 0;
+      }
+      
+      .p-family-name::after {
+        content: ".";
+      }
+
+      body {
+        padding: 7px;
+      }
+
+      body > main {
+        max-width: 52ch;
+      }
+
+      @media (min-width: 500px) {
+        /* Only show jump link to bottom of screen on mobile & unstyled */
+        body p.jump {
+          display: none;
+        }
+
+        body {
+          display: grid;
+          grid-template-columns: 20ch 52ch;
+          gap: 2em;
+          margin: initial;
+        }
+
+        body > main {
+          grid-row: 1;
+          grid-column: 2;
+        }
+
+        body > nav {
+          margin-top: -0.1em;
+          grid-row: 1;
+          grid-column: 1;
+          text-align: right;
+        }
+
+        body > main > p:first-child,
+        body > nav h3:first-of-type {
+          margin-top: 40px;
+        }
+
+        body > footer {
+          grid-column: 2;
+        }
+
+        body > nav summary {
+          display: none;
+        }
+      }
+
+      @media (max-width: 500px) {
+        /* Make "Menu" label look like heading */
+        body > nav summary h2 {
+          display: inline;
+        }
+        body > nav summary::marker {
+          font-size: 0;
+        }
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      body > nav a {
+        text-transform: lowercase;
+        white-space: nowrap;
+      }
+
+      body > footer small {
+        font-family: sans-serif;
+        font-size: 0.8em;
+        filter: grayscale();
+      }
+    </style>
+  </head>
+  <body class="h-card">
+    <p class="jump"><a href="#menu">Menu 🞃</a></p>
+
+    <main>
+      <p>
+        <b class="p-name">
+          <span class="p-given-name">Robin</span>
+          <span class="p-family-name">Boers</span>
+        </b>
+        <span class="p-note">
+          I&#8217;m a developer. I write pretty decent software.
+        </span>
+      </p>
+
+      <p>
+        <a class="u-email" href="/v/22/contact">contact</a> ·
+        <a href="/v/22/stability">website stability note</a>
+      </p>
+
+      <h2 id="about">About me</h2>
+
+      <p>
+        Hi, I&#8217;m <span class="p-name">Robin</span> (<span class="p-pronouns">he/him</span>), also known as <i class="p-nickname">axcelott</i> online. I&#8217;m a 19yo
+        teenager from <span class="p-locality">Maassluis</span> in the
+        <span class="p-country-name">Netherlands</span>. As everyone says these
+        days, this is my little corner of the vast internet.
+      </p>
+
+      <p>
+        I currently work as as
+        <span class="p-job-title">Full-stack developer</span> at
+        <span class="p-org h-card">
+          <a class="p-name u-url" href="https://qdentity.nl" hreflang="nl">Qdentity</a>
+        </span>
+        and as <span class="p-job-title">Sysadmin & lead developer</span> at
+        <span class="p-org h-card">
+          <a class="p-name u-url" href="https://maakotheek.nl" hreflang="nl">Maakotheek</a></span>. I&#8217;m studying Educational Sciences at Utrecht University.
+      </p>
+
+      <p>
+        Some random facts about me: I have a cat called Coco (who apparently has
+        an instagram profile:
+        <a href="https://instagram.com/coconootje23">@coconootje23</a>, go follow
+        him!). My guilty pleasure is definitely Ben&Jerrys. I enjoy playing Minecraft.
+        I&#8217;m very clumsy; I tend to
+        <a href="https://manuelmoreale.com/the-beauty-of-broken-things">break</a>
+        things.
+      </p>
+
+      <p>
+        <a class="u-photo" href="random.jpeg">Here&#8217;s a random picture</a> I decided I liked :)
+      </p>
+
+      <h2 id="writing">Writing</h2>
+
+      <p>
+        I somewhat regularly post <em>things</em> on
+        <a href="/v/22/blog">my blog</a>. (&#8216;Somewhat regularly&#8217; meaning:
+        around once a year, if I feel like it.)
+      </p>
+
+      <p>Here&#8217;s a little selection:</p>
+
+      <ul>
+        <li>
+          <p>
+            <b><a href="/v/22/iconic">Σkɔnik: Syntax & Sorcery</a></b>, a description of a
+            constructed language similar to Esperanto.
+          </p>
+        </li>
+        <li>
+          <p>
+            <b lang="nl"><a href="/v/22/cryptobros">In de ban van de Bitcoin</a></b>, a deep-dive into the subculture surrounding cryptobros.
+          </p>
+        </li>
+        <li>
+          <p>
+            <b lang="nl"><a href="/v/22/blog/0x10c">0x10<sup>c</sup></a></b>, where I explore ideas related to interactive end-user programming as a game. 
+          </p>
+        </li>
+        <li>
+          <p>
+            <b lang="nl"><a href="/v/22/blog/ai-education">AI in educational contexts</a></b>, an essay about the ways we could but shoudn&#8217;t use AI tooling in the context of high schools.
+          </p>
+        </li>
+      </ul>
+
+      <p>
+        I also
+        <a href="https://linkedin.com/posts/somtoday_hoe-leuk-robin-boers-schreef-een-artikel-activity-6934511671432380416-TAed/">
+          got invited to Somtoday HQ
+        </a>
+        once, after I wrote a blogpost
+        <a href="/v/22/blog/somtoday-ziet-er-niet-uit-maar-we-kunnen-het-oplossen-met-css">
+          calling their UI ugly.
+        </a>
+      </p>
+
+      <!--
+      <h2 id="speaking">Speaking</h2>
+
+      <ul>
+        <li>
+          <cite lang="nl"
+            >Cryptobros: een prachtige en fantastische analyse</cite
+          >
+          (<a href="cryptobros.pdf" hreflang="nl">slides</a>)
+        </li>
+        <li>
+          <cite lang="nl"
+            >Taalbeschouwing: kunstmatige talen en waar ze te vinden</cite
+          >
+          (<a href="conlangs.pdf" hreflang="nl">slides</a>)
+        </li>
+      </ul>
+      -->
+
+      <h2 id="contact">Contact</h2>
+
+      <p>
+        You can reach me via email. I love a good conversation, so don&#8217;t
+        hesitate to shoot me an email, I&#8217;ll always reply.
+      </p>
+
+      <pre><code>printf "%s@%s.%s\n" axcelott roblog nl</code></pre>
+
+      <p>Cheers!</p>
+    </main>
+
+    <nav id="menu">
+      <details open>
+        <summary><h2>Menu</h2></summary>
+
+        <h3>writing</h3>
+
+        <ul>
+          <li><a href="/v/22/blog" class="u-url">Blog</a></li>
+          <li><a href="/v/22/now" class="u-url">Now</a></li>
+          <li><a href="/v/22/blogroll" class="">Blogroll</a></li>
+          <li><a href="https://school.geheimesite.nl" class="">School</a></li>
+          <li><a href="https://uni.geheimesite.nl" class="">University</a></li>
+          <li><a href="/v/22/rss" class="">Subscribe</a></li>
+        </ul>
+
+        <h3>work, art</h3>
+
+        <ul>
+          <li><a href="https://git.dupunkto.org" class="">Code</a></li>
+          <li><a href="/v/22/projects" class="">Projects</a></li>
+          <li><a href="/v/22/resume" class="">Resumé</a></li>
+          <li><a href="https://dupunkto.org" class="u-url">{du}punkto</a></li>
+          <li><a href="https://11networks.nl" class="u-url">11networks</a></li>
+          <li><a href="/v/22/r/place" class="">r/place</a></li>
+          <li><a href="/v/22/buttons" class="">88 by 31</a></li>
+          <li><a href="/v/22/js0.23" class="">js0.23</a></li>
+        </ul>
+
+        <h3>meta</h3>
+
+        <ul>
+          <li><a href="/v/22/stability" class="">Stability note</a></li>
+          <li><a href="/v/22/the-archives" class="">The Archives</a></li>
+          <li><a href="/v/22/netmap" class="">Netmap</a></li>
+          <li><a href="https://inbox.geheimesite.nl" class="">Inbox</a></li>
+          <li><a href="/v/22/colophon" class="">Colophon</a></li>
+          <li><a href="/v/22/privacy" class="">Privacy</a></li>
+        </ul>
+      </details>
+    </nav>
+
+    <footer>
+      <small>
+        <p class="cc0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14">
+  <title>Creative Commons</title>
+  <path d="M11.983 0c-3.292 0-6.19 1.217-8.428 3.485C1.25 5.819 0 8.844 0 12c0 3.189 1.217 6.148 3.522 8.45C5.827 22.75 8.822 24 11.983 24c3.16 0 6.222-1.25 8.593-3.583C22.815 18.214 24 15.287 24 12c0-3.255-1.186-6.214-3.458-8.483C18.238 1.217 15.275 0 11.983 0zm.033 2.17c2.7 0 5.103 1.02 6.98 2.893 1.843 1.841 2.83 4.274 2.83 6.937 0 2.696-.954 5.063-2.798 6.872-1.943 1.906-4.444 2.926-7.012 2.926-2.601 0-5.038-1.019-6.914-2.893-1.877-1.875-2.93-4.34-2.93-6.905 0-2.597 1.053-5.063 2.93-6.97 1.844-1.874 4.214-2.86 6.914-2.86zM8.68 8.278C6.723 8.278 5.165 9.66 5.165 12c0 2.38 1.465 3.722 3.581 3.722 1.358 0 2.516-.744 3.155-1.874l-1.491-.758c-.333.798-.839 1.037-1.478 1.037-1.105 0-1.61-.917-1.61-2.126 0-1.21.426-2.127 1.61-2.127.32 0 .96.173 1.332.97l1.597-.838c-.68-1.236-1.837-1.728-3.181-1.728zm6.932 0c-1.957 0-3.514 1.382-3.514 3.722 0 2.38 1.464 3.722 3.58 3.722 1.359 0 2.516-.744 3.155-1.874l-1.49-.758c-.333.798-.84 1.037-1.478 1.037-1.105 0-1.611-.917-1.611-2.126 0-1.21.426-2.127 1.61-2.127.32 0 .96.173 1.332.97l1.597-.838c-.68-1.236-1.837-1.728-3.181-1.728z" fill="currentColor"></path>
+</svg>
+
+          All original content on this website is freely available in the public
+          domain in accordance with the
+          <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0 Universal license</a>. Download, copy, remix all allowed.
+        </p>
+
+        <p class="github">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14">
+  <title>GitHub</title>
+  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" fill="currentColor"></path>
+</svg>
+
+          Source code for this site is licensed AGPLv3.
+          <a href="https://github.com/RobinBoers/geheimesite.nl/blob/trunk/src/geheimesite.nl//index.html.heex.heex">Edit this page on GitHub</a>.
+        </p>
+
+        <p class="elixir">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" width="14" height="14">
+  <defs>
+    <linearGradient id="a" x1="17.249" y1="-335.597" x2="14.973" y2="-309.994"
+      gradientTransform="matrix(1, 0, 0, -1, 0, -306)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="0.01" stop-color="#f7f6f8" stop-opacity="0.04" />
+      <stop offset="0.09" stop-color="#aa9cb3" stop-opacity="0.39" />
+      <stop offset="0.2" stop-color="#6f567e" stop-opacity="0.66" />
+      <stop offset="0.32" stop-color="#452459" stop-opacity="0.86" />
+      <stop offset="0.5" stop-color="#2d0843" stop-opacity="0.97" />
+      <stop offset="1" stop-color="#26003d" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M17.8,8.591c2.079,4.584,7.64,6.5,7.141,12.474-.582,7.017-5.551,8.784-8.316,8.909a8.815,8.815,0,0,1-9.4-7.485C5.618,15.046,12.655,3.632,16.709,2A15.083,15.083,0,0,0,17.8,8.591Zm-.166,18.857a.423.423,0,0,0-.057-.327c-.593-1.1-5.81-1.645-6.907-1.752a8.272,8.272,0,0,0,1.635,1.3,7.766,7.766,0,0,0,2.814,1.041C15.922,27.831,17.467,27.933,17.635,27.447Z"
+    style="fill:#7c648f" />
+  <g style="opacity:0.25">
+    <path
+      d="M18.248,10.618c4.47,4.823,6.445,4.979,6.237,10.478-.249,6.476-4.543,8.191-7.058,8.42-4.2.551-7.495-1.528-8.358-5.686C7.312,17.063,12.978,6.023,16.637,4.36A15.323,15.323,0,0,0,18.258,10.6Z"
+      style="fill:#26003d" />
+  </g>
+  <g style="opacity:0.75">
+    <path
+      d="M17.385,9.921C20.369,14,24.319,13.7,25,19.641c.094,6.923-3.6,9.283-6.237,9.948-4.5,1.279-8.514-.645-10.094-5-3.035-7,2.651-18.514,6.31-20.915a15.083,15.083,0,0,0,2.37,6.237Z"
+      style="fill:url(#a)" />
+  </g>
+</svg>
+
+          Built using Vygotsky v0.1.0. Last deployed at
+          <time datetime="2026-08-08T16:04:26.503314Z">Aug 08, 2026</time> from
+          Maassluis, the Netherlands.
+          <a href="https://github.com/RobinBoers/geheimesite.nl/commit/1922c676b7bcbddbd24525e21a0e336c26e4688b">See changes in <code>1922c67</code></a>.
+        </p>
+      </small>
+
+      <blockquote cite="https://youtube.com/watch?v=6avJHaC3C2U">
+        <a href="https://yewtu.be/watch?v=6avJHaC3C2U" target="_blank">
+          Code is poetry
+        </a>
+      </blockquote>
+    </footer>
+  </body>
+</html>

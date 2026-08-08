@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- Google, please don't mess with my lovingly handcrafted HTML -->
+<meta name="googlebot" content="notranslate">
+
+<link rel="canonical" href="https://geheimesite.nl/blog/tilde">
+<link rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/">
+<link rel="stylesheet" href="/v/22/main.css" type="text/css">
+
+<title>Setting up my server with Gitolite, cgit and Nginx</title>
+
+<link rel="shortcut icon" href="/v/22/favicon.ico">
+  </head>
+  <body>
+    <header>
+  <nav>
+    <a href="/v/22/blog">← Back to the index</a>
+  </nav>
+</header>
+
+    <main>
+      <article class="h-entry">
+        <hgroup>
+          <h1 class="p-name">Setting up my server with Gitolite, cgit and Nginx</h1>
+          <p>
+            <time class="dt-published" datetime="2024-02-15">
+              Feb 15, 2024
+            </time>
+          </p>
+        </hgroup>
+
+        <div class="p-summary e-content">
+          <div><p>This weekend I reinstalled my server. It&#8217;s a cheap VPS that I&#8217;m using to host a bunch of services for myself. I&#8217;m sharing it with a few friends, and my girlfriend uses it to host her website.</p>
+<p>This post is both a guide to setting up a system like this, and a reference for future me, for when I&#8217;m inevitably gonna reinstall the system.</p>
+<h2>Preperations</h2>
+<p>I started off by creating a user account for myself and installing some basic utils:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># pkg install doas nvim bash curl wget
+</div><div class="line" data-line="2"># pw useradd axcelott
+</div></code></pre>
+<p>After I created my own user and granted it root privileges, I turned off root login over SSH in <code>/etc/ssh/sshd_config</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">PermitRootLogin no
+</div></code></pre>
+<h2>Gitolite</h2>
+<p>I wanted a simple git server with a bare-bones and easily customizable web panel and powerful permission management for repos. For that, I chose to use Gitolite in combination with cgit.</p>
+<p>First off, install the dependencies:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># pkg install git gitolite
+</div></code></pre>
+<p>Create a <code>git</code> user:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># pw useradd git -d /var/git
+</div><div class="line" data-line="2"># mkdir /var/git
+</div><div class="line" data-line="3"># chown -R git:git /var/git
+</div></code></pre>
+<p>Gitolite identifies users by their SSH key. To install the server, you need to copy over your SSH public key for the initial admin user. In my case I created a file called <code>axcelott.pub</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># su - git
+</div><div class="line" data-line="2">$ mkdir .ssh
+</div><div class="line" data-line="3">$ chmod 700 .ssh
+</div><div class="line" data-line="4">$ echo &quot;ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKb4ntyobJbcQE7YeyEX0Mi4QPs3QKatYsQ853pVwU6w robindev2019@outlook.com&quot; &gt; .ssh/axcelott.pub
+</div></code></pre>
+<p>Then install gitolite using this command:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">$ gitolite setup -pk .ssh/axcelott.pub
+</div></code></pre>
+<p>This will create two new repos called <code>gitolite-admin.git</code> and <code>testing.git</code>. The admin repo will be used to store SSH public keys for users and a configuration file containing a list of repos and rules defining which users can access them.</p>
+<p>But before we continue, we need to change a few things in <code>.gitolite.rc</code>:</p>
+<ul>
+<li>Change <code>UMASK => 0077</code> to <code>UMASK => 0027</code></li>
+<li>Change <code>GIT_CONFIG_KEYS => ""</code> to <code>GIT_CONFIG_KEYS => ".*"</code></li>
+</ul>
+<p>These changes are needed to make cgit work smoothly later.</p>
+<p>Now, clone the <code>gitolite-admin.git</code> repo locally:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">$ git clone git@gitserver:gitolite-admin.git
+</div><div class="line" data-line="2">$ cd gitolite-admin
+</div><div class="line" data-line="3">$ ls
+</div><div class="line" data-line="4">conf keydir
+</div></code></pre>
+<p>The <code>conf</code> directory should include a single file: <code>gitolite.conf</code>. This file contains a list of all repos and who&#8217;s allowed to read and write them.</p>
+<p>It should look something like this:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">repo gitolite-admin
+</div><div class="line" data-line="2">    RW+     =   charlie
+</div><div class="line" data-line="3">
+</div><div class="line" data-line="4">repo testing
+</div><div class="line" data-line="5">    RW+     =   @all
+</div></code></pre>
+<p>To change the config, simply edit the file and then commit and push your changes. Change it to your liking. On <code>du11</code>, this was the final config:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">@admins = axcelott
+</div><div class="line" data-line="2">@users = @admins msb
+</div><div class="line" data-line="3">@public = gitweb daemon
+</div><div class="line" data-line="4">
+</div><div class="line" data-line="5"># Admin
+</div><div class="line" data-line="6">repo gitolite-admin
+</div><div class="line" data-line="7">    RW+      =   @admins
+</div><div class="line" data-line="8">
+</div><div class="line" data-line="9"># &lbrace;du&rbrace;punkto projects
+</div><div class="line" data-line="10">repo sites/dupunkto.org
+</div><div class="line" data-line="11">    category =   sites
+</div><div class="line" data-line="12">    RW+      =   @users
+</div><div class="line" data-line="13">    R        =   @all
+</div><div class="line" data-line="14">
+</div><div class="line" data-line="15">repo oblikvo
+</div><div class="line" data-line="16">    RW+      =   @users
+</div><div class="line" data-line="17">    R        =   @all
+</div><div class="line" data-line="18">
+</div><div class="line" data-line="19">repo somtomorrow
+</div><div class="line" data-line="20">    RW+      =   @users
+</div><div class="line" data-line="21">    R        =   @all
+</div><div class="line" data-line="22">
+</div><div class="line" data-line="23">repo tools
+</div><div class="line" data-line="24">    RW+      =   @users
+</div><div class="line" data-line="25">    R        =   @all
+</div><div class="line" data-line="26">
+</div><div class="line" data-line="27">repo wiki
+</div><div class="line" data-line="28">    RW+      =   @users
+</div><div class="line" data-line="29">    R        =   @all
+</div><div class="line" data-line="30">
+</div><div class="line" data-line="31"># Public namespaces
+</div><div class="line" data-line="32">repo forks/..*
+</div><div class="line" data-line="33">    category =   forks
+</div><div class="line" data-line="34">    C        =   @users
+</div><div class="line" data-line="35">    RW+      =   CREATOR
+</div><div class="line" data-line="36">    -        =   @public
+</div><div class="line" data-line="37">    R        =   READERS
+</div><div class="line" data-line="38">
+</div><div class="line" data-line="39"># Personal namespaces
+</div><div class="line" data-line="40">repo CREATOR/..*
+</div><div class="line" data-line="41">    category =   personal
+</div><div class="line" data-line="42">    C        =   @users
+</div><div class="line" data-line="43">    RW+      =   CREATOR
+</div><div class="line" data-line="44">    RW       =   WRITERS
+</div><div class="line" data-line="45">    R        =   @all
+</div><div class="line" data-line="46">
+</div><div class="line" data-line="47"># Project namespaces
+</div><div class="line" data-line="48"># (operated by a single user)
+</div><div class="line" data-line="49">repo grape-lang/..*
+</div><div class="line" data-line="50">    category =   grape-lang
+</div><div class="line" data-line="51">    C        =   axcelott
+</div><div class="line" data-line="52">    RW+      =   CREATOR
+</div><div class="line" data-line="53">    -        =   @public
+</div><div class="line" data-line="54">    R        =   READERS
+</div><div class="line" data-line="55">
+</div><div class="line" data-line="56">repo neopub/..*
+</div><div class="line" data-line="57">    category =   neopub
+</div><div class="line" data-line="58">    C        =   axcelott
+</div><div class="line" data-line="59">    RW+      =   CREATOR
+</div><div class="line" data-line="60">    -        =   @public
+</div><div class="line" data-line="61">    R        =   READERS
+</div><div class="line" data-line="62">
+</div><div class="line" data-line="63">repo epique/..*
+</div><div class="line" data-line="64">    C        =   axcelott
+</div><div class="line" data-line="65">    RW+      =   CREATOR
+</div><div class="line" data-line="66">    -        =   @public
+</div><div class="line" data-line="67">    R        =   READERS
+</div><div class="line" data-line="68">
+</div><div class="line" data-line="69">repo nindo/..*
+</div><div class="line" data-line="70">    category =   nindo
+</div><div class="line" data-line="71">    C        =   axcelott
+</div><div class="line" data-line="72">    RW+      =   CREATOR
+</div><div class="line" data-line="73">    -        =   @public
+</div><div class="line" data-line="74">    R        =   READERS
+</div><div class="line" data-line="75">
+</div><div class="line" data-line="76">repo unlibrary/..*
+</div><div class="line" data-line="77">    category =   unlibrary
+</div><div class="line" data-line="78">    C        =   axcelott
+</div><div class="line" data-line="79">    RW+      =   CREATOR
+</div><div class="line" data-line="80">    -        =   @public
+</div><div class="line" data-line="81">    R        =   READERS
+</div><div class="line" data-line="82">
+</div><div class="line" data-line="83">repo skylight/..*
+</div><div class="line" data-line="84">    category =   skylight
+</div><div class="line" data-line="85">    C        =   axcelott
+</div><div class="line" data-line="86">    RW+      =   CREATOR
+</div><div class="line" data-line="87">    -        =   @public
+</div><div class="line" data-line="88">    R        =   READERS
+</div><div class="line" data-line="89">
+</div><div class="line" data-line="90"># Private namespaces
+</div><div class="line" data-line="91">repo sites/..*
+</div><div class="line" data-line="92">    C        =   axcelott
+</div><div class="line" data-line="93">    RW+      =   CREATOR
+</div><div class="line" data-line="94">    -        =   @public
+</div><div class="line" data-line="95">    R        =   READERS
+</div><div class="line" data-line="96">
+</div><div class="line" data-line="97">repo meta/..*
+</div><div class="line" data-line="98">    C        =   axcelott
+</div><div class="line" data-line="99">    RW+      =   CREATOR
+</div><div class="line" data-line="100">    -        =   @public
+</div><div class="line" data-line="101">    R        =   READERS
+</div><div class="line" data-line="102">
+</div><div class="line" data-line="103">repo legacy/..*
+</div><div class="line" data-line="104">    category =   legacy
+</div><div class="line" data-line="105">    C        =   axcelott
+</div><div class="line" data-line="106">    RW+      =   CREATOR
+</div><div class="line" data-line="107">    -        =   @public
+</div><div class="line" data-line="108">    R        =   READERS
+</div></code></pre>
+<p>Similarly, you can add users by putting their SSH public key in the <code>keydir</code> folder and pushing the changes. In my case, I added <code>msb.pub</code> (since <code>axcelott.pub</code> was already present from installing).</p>
+<h3>Importing repositories</h3>
+<p>Importing repositories in Gitolite is very simple. Simply copy the repositories into the <code>/var/git/repositories</code> folder. Then run the following commands:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># chown -R git:git /var/git/repositories
+</div><div class="line" data-line="2"># chmod -R g+rX /var/git/repositories
+</div></code></pre>
+<p>And then (as the <code>git</code> user):</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">$ gitolite compile
+</div><div class="line" data-line="2">$ gitolite setup --hooks-only
+</div><div class="line" data-line="3">$ gitolite trigger POST_COMPILE
+</div></code></pre>
+<p>For wild repos, you need to run this command to assign the correct owner:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">$ printf &quot;axcelott&quot; &gt; /var/git/repositories/some/repo.git/gl-creator
+</div></code></pre>
+<p>And finally, add the remaining repos to your <code>gitolite.conf</code> and push your changes.</p>
+<h2>cgit</h2>
+<p>For the web control panel, I chose cgit. It&#8217;s simple, fast, easily themeable and it&#8217;s easy to setup. cgit is a CGI application, so we&#8217;ll need a webserver too. I went with Nginx &#8212; not because I like it, but because Apache sucks and Caddy is a hassle to setup.</p>
+<p>First, install the dependencies:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># pkg install cgit fcgiwrap nginx py39-docutils py39-markdown py39-pygments python3 python39
+</div></code></pre>
+<p><code>fcgiwrap</code> is a little tool to make cgit, which is a CGI application, work with the FastCGI protocol that Nginx uses. I&#8217;m not good at explaining this stuff, so I&#8217;ll just quote it instead:</p>
+<blockquote>
+<p>Cgit, which uses code from Git, was designed to let users run a command (eg: <code>git push</code>) then exit, allowing our computers to reclaim the used resources between each call. Nginx uses a faster protocol (<a href="https://en.wikipedia.org/wiki/FastCGI">FastCGI</a>) which calls the same program multiple times without exiting.</p>
+<p>However because Cgit was designed to exit after every run, it will never give back its used resources and will continue to take more, quickly exhausting all of the computer&#8217;s available resources. This is why we need <code>fcgiwrap</code>.</p>
+</blockquote>
+<p>To make it work, append the following to your <code>/etc/rc.conf</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">nginx_enable=&quot;YES&quot;
+</div><div class="line" data-line="2">fcgiwrap_enable=&quot;YES&quot;
+</div><div class="line" data-line="3">fcgiwrap_flags=&quot;-f&quot;
+</div><div class="line" data-line="4">fcgiwrap_user=&quot;www&quot;
+</div><div class="line" data-line="5">fcgiwrap_group=&quot;www&quot;
+</div><div class="line" data-line="6">fcgiwrap_socket_owner=&quot;www&quot;
+</div><div class="line" data-line="7">fcgiwrap_socket_group=&quot;www&quot;
+</div></code></pre>
+<p>Next, add a <code>server</code>-block to the Nginx config (<code>/usr/local/etc/nginx/nginx.conf</code>), and you&#8217;re almost done:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">server &lbrace;
+</div><div class="line" data-line="2">    listen 80;
+</div><div class="line" data-line="3">    listen [::]:80;
+</div><div class="line" data-line="4">    server_name git.dupunkto.org;
+</div><div class="line" data-line="5">
+</div><div class="line" data-line="6">    charset utf-8;
+</div><div class="line" data-line="7">
+</div><div class="line" data-line="8">    add_header Referrer-Policy &quot;no-referrer&quot;;
+</div><div class="line" data-line="9">    add_header X-Content-Type-Options &quot;nosniff&quot;;
+</div><div class="line" data-line="10">    add_header X-Frame-Options &quot;deny&quot;;
+</div><div class="line" data-line="11">    add_header Cross-Origin-Opener-Policy &quot;same-origin&quot;;
+</div><div class="line" data-line="12">    add_header Strict-Transport-Security &quot;max-age=31536000&quot;;
+</div><div class="line" data-line="13">
+</div><div class="line" data-line="14">    root /usr/local/www/cgit;
+</div><div class="line" data-line="15">    try_files $uri @cgit;
+</div><div class="line" data-line="16">
+</div><div class="line" data-line="17">    location @cgit &lbrace;
+</div><div class="line" data-line="18">        client_max_body_size 0;
+</div><div class="line" data-line="19">
+</div><div class="line" data-line="20">        include fastcgi_params;
+</div><div class="line" data-line="21">        fastcgi_param SCRIPT_FILENAME /usr/local/www/cgit/cgit.cgi;
+</div><div class="line" data-line="22">        fastcgi_param PATH_INFO $uri;
+</div><div class="line" data-line="23">        fastcgi_param QUERY_STRING $args;
+</div><div class="line" data-line="24">        fastcgi_param HTTP_HOST $server_name;
+</div><div class="line" data-line="25">        fastcgi_pass unix:/var/run/fcgiwrap/fcgiwrap.sock;
+</div><div class="line" data-line="26">        fastcgi_read_timeout 300;
+</div><div class="line" data-line="27">    &rbrace;
+</div><div class="line" data-line="28">
+</div><div class="line" data-line="29">    error_page 500 502 503 504 /50x.html;
+</div><div class="line" data-line="30">    location = /50x.html &lbrace;
+</div><div class="line" data-line="31">        root /usr/local/www/nginx-dist;
+</div><div class="line" data-line="32">    &rbrace;
+</div><div class="line" data-line="33">&rbrace;
+</div></code></pre>
+<p>To finish off, edit the cgit config in <code>/usr/local/etc/cgitrc</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">root-title=&lbrace;du&rbrace;punkto · git repositories
+</div><div class="line" data-line="2">root-desc=Improving the world, line by line
+</div><div class="line" data-line="3">
+</div><div class="line" data-line="4">virtual-root=/
+</div><div class="line" data-line="5">css=/custom.css
+</div><div class="line" data-line="6">favicon=
+</div><div class="line" data-line="7">logo=
+</div><div class="line" data-line="8">
+</div><div class="line" data-line="9"># Use gitolite repos
+</div><div class="line" data-line="10">enable-git-config=1
+</div><div class="line" data-line="11">remove-suffix=1
+</div><div class="line" data-line="12">section-from-path=2
+</div><div class="line" data-line="13">project-list=/var/git/projects.list
+</div><div class="line" data-line="14">scan-path=/var/git/repositories
+</div><div class="line" data-line="15">branch-sort=age
+</div><div class="line" data-line="16">repository-sort=age
+</div><div class="line" data-line="17">robots=noindex, nofollow
+</div><div class="line" data-line="18">
+</div><div class="line" data-line="19"># Dumb clones
+</div><div class="line" data-line="20">enable-http-clone=1
+</div><div class="line" data-line="21">clone-prefix=ssh://git@dupunkto.org https://git.dupunkto.org http://git.dupunkto.org
+</div><div class="line" data-line="22">
+</div><div class="line" data-line="23"># Enable &#39;expensive&#39; features
+</div><div class="line" data-line="24">enable-subject-links=1
+</div><div class="line" data-line="25">enable-tree-linenumbers=1
+</div><div class="line" data-line="26">enable-commit-graph=1
+</div><div class="line" data-line="27">enable-blame=1
+</div><div class="line" data-line="28">enable-log-filecount=1
+</div><div class="line" data-line="29">enable-log-linecount=1
+</div><div class="line" data-line="30">enable-git-config=1
+</div><div class="line" data-line="31">enable-index-owner=0
+</div><div class="line" data-line="32">side-by-side-diffs=1
+</div><div class="line" data-line="33">summary-branches=5
+</div><div class="line" data-line="34">
+</div><div class="line" data-line="35"># Disable repo pagination
+</div><div class="line" data-line="36">max-repo-count=1000000000
+</div><div class="line" data-line="37">
+</div><div class="line" data-line="38"># No spam please
+</div><div class="line" data-line="39">noplainemail=1
+</div><div class="line" data-line="40">
+</div><div class="line" data-line="41"># Allow downloads
+</div><div class="line" data-line="42">snapshots=tar.gz zip
+</div><div class="line" data-line="43">
+</div><div class="line" data-line="44"># Syntax highlighting &amp; READMEs
+</div><div class="line" data-line="45">source-filter=/usr/local/lib/cgit/filters/syntax-highlighting.py
+</div><div class="line" data-line="46">about-filter=/usr/local/lib/cgit/filters/about-formatting.sh
+</div><div class="line" data-line="47">readme=:README.txt
+</div><div class="line" data-line="48">readme=:README.md
+</div><div class="line" data-line="49">readme=:README
+</div></code></pre>
+<p>In my case, I also added some custom CSS in <code>/usr/local/www/cgit/custom.css</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-css" translate="no" tabindex="0"><div class="line" data-line="1"><span style="color: #c678dd;">@import</span> <span style="color: #61afef;">url</span><span style="color: #c678dd;">(</span><span style="color: #98c379;">&quot;cgit.css&quot;</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="2">
+</div><div class="line" data-line="3"><span style="color: #7f848e;">/* Better fonts */</span>
+</div><div class="line" data-line="4"><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">root</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="5">        <span style="color: #e06c75;">line-height</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">1.25</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="6">        <span style="color: #e06c75;">tab-size</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">4</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="7"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="8">
+</div><div class="line" data-line="9"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #c678dd;">&lbrace;</span> <span style="color: #e06c75;">font-family</span><span style="color: #abb2bf;">:</span> monospace<span style="color: #abb2bf;">;</span> <span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="10">
+</div><div class="line" data-line="11"><span style="color: #7f848e;">/* Better layout */</span>
+</div><div class="line" data-line="12"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="13">        <span style="color: #e06c75;">max-width</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">117<span style="color: #98c379;">ch</span></span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="14">        <span style="color: #e06c75;">margin</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">0</span> auto<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="15"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="16"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">summary</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="17">        <span style="color: #e06c75;">max-width</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">80<span style="color: #98c379;">ch</span></span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="18"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="19">
+</div><div class="line" data-line="20"><span style="color: #7f848e;">/* Better header */</span>
+</div><div class="line" data-line="21"><span style="color: #e06c75;">table</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">header</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">main</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">has</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">a</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="22">        <span style="color: #e06c75;">color</span><span style="color: #abb2bf;">:</span> transparent<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="23">        <span style="color: #e06c75;">font-size</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">.2<span style="color: #98c379;">px</span></span> <span style="color: #c678dd;">!important</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="24"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="25"><span style="color: #e06c75;">table</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">header</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">main</span> <span style="color: #e06c75;">a</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="26">        <span style="color: #e06c75;">font-size</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">2<span style="color: #98c379;">rem</span></span> <span style="color: #c678dd;">!important</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="27"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="28"><span style="color: #e06c75;">table</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">header</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">main</span> <span style="color: #e06c75;">a</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">first-child</span><span style="color: #abb2bf;">::</span><span style="color: #c678dd;">after</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="29">        <span style="color: #e06c75;">content</span><span style="color: #abb2bf;">:</span> <span style="color: #98c379;">&quot;/&quot;</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="30"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="31">
+</div><div class="line" data-line="32"><span style="color: #7f848e;">/* Trim repo descriptions */</span>
+</div><div class="line" data-line="33"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">div</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">content</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">tr</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">nth-child</span><span style="color: #c678dd;">(</span><span style="color: #d19a66;">2</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="34">        <span style="color: #e06c75;">max-width</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">40<span style="color: #98c379;">ch</span></span> <span style="color: #c678dd;">!important</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="35">        <span style="color: #e06c75;">overflow</span><span style="color: #abb2bf;">:</span> hidden<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="36">        <span style="color: #e06c75;">text-overflow</span><span style="color: #abb2bf;">:</span> ellipsis<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="37">        <span style="color: #e06c75;">text-transform</span><span style="color: #abb2bf;">:</span> lowercase<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="38"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="39">
+</div><div class="line" data-line="40"><span style="color: #7f848e;">/* Remove weird artifacts */</span>
+</div><div class="line" data-line="41"><span style="color: #e06c75;">table</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">header</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">sub</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">right</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="42">        <span style="color: #e06c75;">display</span><span style="color: #abb2bf;">:</span> none<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="43"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="44">
+</div><div class="line" data-line="45"><span style="color: #7f848e;">/* Remove excessive use of borders */</span>
+</div><div class="line" data-line="46"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">header</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">sub</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="47">        <span style="color: #e06c75;">border-top</span><span style="color: #abb2bf;">:</span> none<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="48"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="49"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">tabs</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="50">        <span style="color: #e06c75;">border-bottom</span><span style="color: #abb2bf;">:</span> none<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="51"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="52"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">div</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">content</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="53">        <span style="color: #e06c75;">border-bottom</span><span style="color: #abb2bf;">:</span> none<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="54"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="55">
+</div><div class="line" data-line="56"><span style="color: #7f848e;">/* Padding on sections */</span>
+</div><div class="line" data-line="57"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">reposection</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="58">        <span style="color: #e06c75;">padding-top</span><span style="color: #abb2bf;">:</span> <span style="color: #d19a66;">1.5<span style="color: #98c379;">em</span></span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="59"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="60">
+</div><div class="line" data-line="61"><span style="color: #7f848e;">/* Neutral colors */</span>
+</div><div class="line" data-line="62"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">th</span> <span style="color: #e06c75;">a</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="63">        <span style="color: #e06c75;">color</span><span style="color: #abb2bf;">:</span> inherit<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="64"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="65"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">tr</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">nth-child</span><span style="color: #c678dd;">(</span>even<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="66">        <span style="color: #e06c75;">background</span><span style="color: #abb2bf;">:</span> inherit<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="67"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="68"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">tr</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">hover</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="69">        <span style="color: #e06c75;">background</span><span style="color: #abb2bf;">:</span> inherit<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="70"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="71"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">list</span> <span style="color: #e06c75;">tr</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">nohover-highlight</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">hover</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">nth-child</span><span style="color: #c678dd;">(</span>even<span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="72">        <span style="color: #e06c75;">background</span><span style="color: #abb2bf;">:</span> inherit<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="73"><span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="74"><span style="color: #e06c75;">div</span><span style="color: #abb2bf;">#</span><span style="color: #d19a66;">cgit</span> <span style="color: #e06c75;">table</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">blob</span> <span style="color: #e06c75;">td</span><span style="color: #abb2bf;">.</span><span style="color: #e5c07b;">linenumbers</span> <span style="color: #e06c75;">a</span><span style="color: #abb2bf;">:</span><span style="color: #c678dd;">target</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="75">        <span style="color: #e06c75;">color</span><span style="color: #abb2bf;">:</span> goldenrod<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="76">        <span style="color: #e06c75;">text-decoration</span><span style="color: #abb2bf;">:</span> underline<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="77">        <span style="color: #e06c75;">outline</span><span style="color: #abb2bf;">:</span> none<span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="78"><span style="color: #c678dd;">&rbrace;</span>
+</div></code></pre>
+<h2>Webhosting</h2>
+<p>I wanted everyone who had access to the server to have their own little web space at <strong>dupunkto.org/username</strong>, which they could manage by placing files into <code>~/public_html</code>. Doing this is as simple as adding another <code>server</code>-block to the Nginx config.</p>
+<p>While I was at it, I created some directories where the files for the homepage of our site can live, and I made them writeable for everyone because I don&#8217;t have trust issues (yet):</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># mkdir /usr/local/www/dupunkto.org
+</div><div class="line" data-line="2"># mkdir /usr/local/www/ftp.dupunkto.org
+</div><div class="line" data-line="3"># chmow 777 /usr/local/www/dupunkto.org
+</div><div class="line" data-line="4"># chmod 777 /usr/local/www/ftp.dupunkto.org
+</div></code></pre>
+<p>And finally, add this to the Nginx config:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">server &lbrace;
+</div><div class="line" data-line="2">    listen 80;
+</div><div class="line" data-line="3">    listen [::]:80;
+</div><div class="line" data-line="4">    server_name  dupunkto.org;
+</div><div class="line" data-line="5">
+</div><div class="line" data-line="6">    charset utf-8;
+</div><div class="line" data-line="7">
+</div><div class="line" data-line="8">    add_header Referrer-Policy &quot;no-referrer&quot;;
+</div><div class="line" data-line="9">    add_header X-Content-Type-Options &quot;nosniff&quot;;
+</div><div class="line" data-line="10">    add_header X-Frame-Options &quot;deny&quot;;
+</div><div class="line" data-line="11">    add_header Cross-Origin-Opener-Policy &quot;same-origin&quot;;
+</div><div class="line" data-line="12">    add_header Strict-Transport-Security &quot;max-age=31536000&quot;;
+</div><div class="line" data-line="13">    add_header Access-Control-Allow-Origin &quot;*&quot;;
+</div><div class="line" data-line="14">
+</div><div class="line" data-line="15">    location ~ ^/~(.+?)(/.*)?$ &lbrace;
+</div><div class="line" data-line="16">            alias /home/$1/public_html$2;
+</div><div class="line" data-line="17">    &rbrace;
+</div><div class="line" data-line="18">
+</div><div class="line" data-line="19">    root   /usr/local/www/dupunkto.org;
+</div><div class="line" data-line="20">    index  index.html index.htm;
+</div><div class="line" data-line="21">
+</div><div class="line" data-line="22">    error_page 404              /404.html;
+</div><div class="line" data-line="23">    error_page 500 502 503 504  /500.html;
+</div><div class="line" data-line="24">&rbrace;
+</div></code></pre>
+<h2>FTP storage</h2>
+<p>I also wanted everyone to have some file storage accessible over FTP and HTTP. For that, I added another <code>server</code>-block to the ever-growing Nginx configuration:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">server &lbrace;
+</div><div class="line" data-line="2">    listen 80;
+</div><div class="line" data-line="3">    listen [::]:80;
+</div><div class="line" data-line="4">    server_name  ftp.dupunkto.org;
+</div><div class="line" data-line="5">
+</div><div class="line" data-line="6">    charset utf-8;
+</div><div class="line" data-line="7">
+</div><div class="line" data-line="8">    add_header Referrer-Policy &quot;no-referrer&quot;;
+</div><div class="line" data-line="9">    add_header X-Content-Type-Options &quot;nosniff&quot;;
+</div><div class="line" data-line="10">    add_header X-Frame-Options &quot;deny&quot;;
+</div><div class="line" data-line="11">    add_header Cross-Origin-Opener-Policy &quot;same-origin&quot;;
+</div><div class="line" data-line="12">    add_header Strict-Transport-Security &quot;max-age=31536000&quot;;
+</div><div class="line" data-line="13">    add_header Access-Control-Allow-Origin &quot;*&quot;;
+</div><div class="line" data-line="14">
+</div><div class="line" data-line="15">    location ~ ^/~(.+?)(/.*)?$ &lbrace;
+</div><div class="line" data-line="16">            alias /home/$1/public_ftp$2;
+</div><div class="line" data-line="17">            autoindex on;
+</div><div class="line" data-line="18">    &rbrace;
+</div><div class="line" data-line="19">
+</div><div class="line" data-line="20">    root   /usr/local/www/ftp.dupunkto.org;
+</div><div class="line" data-line="21">
+</div><div class="line" data-line="22">    error_page 404              /404.html;
+</div><div class="line" data-line="23">    error_page 500 502 503 504  /500.html;
+</div><div class="line" data-line="24">&rbrace;
+</div></code></pre>
+<p>I haven&#8217;t yet installed the FTP server tho. Sowwy!</p>
+<h2>SSL</h2>
+<p>While the webserver is running just fine as-is, one important thing is missing: SSL. Currently, we&#8217;re only serving plain HTTP, and not HTTPS, causing our browsers to scream at us with exagerrated warnings like &#8220;This site isn&#8217;t secure, your banking details could get stolen&#8221; etc.</p>
+<p>To solve this, I installed <code>certbot</code>, a tool to automatically install and renew SSl free Let&#8217;s Encrypt certificates:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># pkg install py39-certbot security/py-certbot-nginx
+</div></code></pre>
+<p>Simply run this to create and install the required certificates, and voilla:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># certbot --nginx -d dupunkto.org -d git.dupunkto.org -d ftp.dupunkto.org
+</div><div class="line" data-line="2"># sysrc weekly_certbot_enable=&quot;YES&quot;
+</div></code></pre>
+<h2>Firewall</h2>
+<p>To secure our system, I also setup a firewall. Add the following to <code>/etc/rc.conf</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">firewall_enable=&quot;YES&quot;
+</div><div class="line" data-line="2">firewall_type=&quot;workstation&quot;
+</div><div class="line" data-line="3">firewall_myservices=&quot;ssh http https&quot;
+</div><div class="line" data-line="4">firewall_allowservices=&quot;any&quot;
+</div><div class="line" data-line="5">firewall_script=&quot;/etc/ipfw.rules&quot;
+</div></code></pre>
+<p>And then configure the firewall as desired in <code>/etc/ipfw.rules</code>:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-bash" translate="no" tabindex="0"><div class="line" data-line="1"><span style="color: #c678dd;">#!/bin/sh</span>
+</div><div class="line" data-line="2"><span style="color: #d19a66;">IPF</span><span style="color: #56b6c2;">=</span><span style="color: #98c379;">&quot;ipfw -q add&quot;</span>
+</div><div class="line" data-line="3"><span style="color: #61afef;">ipfw</span> <span style="color: #e06c75;">-q</span> <span style="color: #e06c75;">-f</span> <span style="color: #e06c75;">flush</span>
+</div><div class="line" data-line="4">
+</div><div class="line" data-line="5"><span style="color: #7f848e;">#loopback</span>
+</div><div class="line" data-line="6"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">10</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">all</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">via</span> <span style="color: #e06c75;">lo0</span>
+</div><div class="line" data-line="7"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">20</span> <span style="color: #e06c75;">deny</span> <span style="color: #e06c75;">all</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">127.0.0.0/8</span>
+</div><div class="line" data-line="8"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">30</span> <span style="color: #e06c75;">deny</span> <span style="color: #e06c75;">all</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">127.0.0.0/8</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span>
+</div><div class="line" data-line="9"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">40</span> <span style="color: #e06c75;">deny</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">frag</span>
+</div><div class="line" data-line="10">
+</div><div class="line" data-line="11"><span style="color: #7f848e;"># statefull</span>
+</div><div class="line" data-line="12"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">50</span> <span style="color: #e06c75;">check-state</span>
+</div><div class="line" data-line="13"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">60</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">established</span>
+</div><div class="line" data-line="14"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">70</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">all</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">out</span> <span style="color: #e06c75;">keep-state</span>
+</div><div class="line" data-line="15"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">80</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">icmp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span>
+</div><div class="line" data-line="16"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">81</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">icmp6</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span>
+</div><div class="line" data-line="17">
+</div><div class="line" data-line="18"><span style="color: #7f848e;"># open port ftp (20,21), ssh (22), mail (25)</span>
+</div><div class="line" data-line="19"><span style="color: #7f848e;"># http (80), dns (53), https (443), mosh (60000-61000)</span>
+</div><div class="line" data-line="20"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">110</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">21</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="21"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">120</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">21</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="22"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">130</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">22</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="23"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">140</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">22</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="24"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">150</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">25</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="25"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">160</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">25</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="26"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">170</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">udp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">53</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="27"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">175</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">53</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="28"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">180</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">udp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">53</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="29"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">185</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">53</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="30"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">200</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">80</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="31"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">210</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">80</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="32"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">220</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">443</span> <span style="color: #e06c75;">in</span>
+</div><div class="line" data-line="33"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">230</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">tcp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #d19a66;">443</span> <span style="color: #e06c75;">out</span>
+</div><div class="line" data-line="34"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">300</span> <span style="color: #e06c75;">allow</span> <span style="color: #e06c75;">udp</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">60000-61000</span>
+</div><div class="line" data-line="35">
+</div><div class="line" data-line="36"><span style="color: #7f848e;"># deny and log everything</span>
+</div><div class="line" data-line="37"><span style="color: #abb2bf;">$</span><span style="color: #d19a66;">IPF</span> <span style="color: #d19a66;">500</span> <span style="color: #e06c75;">deny</span> <span style="color: #e06c75;">log</span> <span style="color: #e06c75;">all</span> <span style="color: #e06c75;">from</span> <span style="color: #e06c75;">any</span> <span style="color: #e06c75;">to</span> <span style="color: #e06c75;">any</span>
+</div></code></pre>
+<p>And then finally, start the services:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1"># service start ipfw
+</div><div class="line" data-line="2"># service start fcgiwrap
+</div><div class="line" data-line="3"># service start nginx
+</div></code></pre>
+<h2>Conclusion</h2>
+<p>So that&#8217;s how I setup my server. I think this post is already way too long, so I&#8217;ll leave the CardDAV server (Radicale) and Miniflux instance for another time.</p>
+<p>I had a lot of fun setting this up, and I hope this post will help someone else.</p></div>
+        </div>
+
+        <footer>
+          <p class="reply-by-email">
+            <a class="button" href="/v/22/contact?subject=RE: Setting up my server with Gitolite, cgit and Nginx">Reply by email</a>
+          </p>
+        </footer>
+      </article>
+    </main>
+
+    <footer>
+      Made with ♡ in the Netherlands. <a href="https://copyheart.org">Copying is an act of love.</a> Please copy.
+    </footer>
+  </body>
+</html>

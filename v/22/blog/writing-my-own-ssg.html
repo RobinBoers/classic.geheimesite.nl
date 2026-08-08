@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- Google, please don't mess with my lovingly handcrafted HTML -->
+<meta name="googlebot" content="notranslate">
+
+<link rel="canonical" href="https://geheimesite.nl/blog/writing-my-own-ssg">
+<link rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/">
+<link rel="stylesheet" href="/v/22/main.css" type="text/css">
+
+<title>Writing my own SSG</title>
+
+<link rel="shortcut icon" href="/v/22/favicon.ico">
+  </head>
+  <body>
+    <header>
+  <nav>
+    <a href="/v/22/blog">← Back to the index</a>
+  </nav>
+</header>
+
+    <main>
+      <article class="h-entry">
+        <hgroup>
+          <h1 class="p-name">Writing my own SSG</h1>
+          <p>
+            <time class="dt-published" datetime="2023-10-16">
+              Oct 16, 2023
+            </time>
+          </p>
+        </hgroup>
+
+        <div class="p-summary e-content">
+          <div><p>A few days ago, I discovered the Gemini protocol. I heard about it a while back already, but I didn&#8217;t pay that much attention and failed to notice it.</p>
+<p>So, naturally, I was REALLY excited about this cool new toy. I downloaded about four different clients/browsers to see which one I liked the best (it turned out to be <a href="https://gmi.skyjake.fi/lagrange/">Lagrange</a>), and immediately thought about porting my website to it. Small problem however: my site is built using <a href="https://gohugo.io">Hugo</a>.</p>
+<p>And I <em>love</em> Hugo. It&#8217;s fast. It&#8217;s easy. It&#8217;s powerful. It&#8217;s fast. Did I mention that it&#8217;s fast? However, Hugo is also really centered around HTML files. And to make matters worse, my site is really complicated. It interacts with multiple things on <code>api.geheimesite.nl</code>, renders RSS feeds, downloads images, does fancy resource things.</p>
+<p>In short, porting it over was gonna be <em>really hard</em>. So, instead of breaking my brain over porting my primary website, I took a look at my blog. Just like my website, my blog is built using Hugo. Because I do really like Hugo a lot. So, after a quick bit of Googling, I found out that I could <a href="https://sylvaindurand.org/gemini-and-hugo/">add an output to Hugo</a>. But what would be the fun of that, eh?</p>
+<p>And to be honest, I&#8217;ve been wanting to build another blog for a while now. Actually, I already bought a domain for it 4 months back. Initially, I built it like a text-based system. I wrote a little PHP script that handled the HTTP <code>PUT</code> verb, which meant I could do cool things like this:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-plaintext" translate="no" tabindex="0"><div class="line" data-line="1">curl http://example.com/essay.txt --upload-file essay.txt -u robin:password
+</div></code></pre>
+<p>All files would be served as <code>text/plain</code>, and hyperlinks would be added on separate lines, where you could easily copy and paste them. Sounds familiar, right?</p>
+<p>I also got very hyped when I found <a href="https://notebook.wesleyac.com">Wesley&#8217;s notebook</a> a while back. It&#8217;s such a simple, sleek and beautiful website. And the cool thing is that he completely wrote the thing using POSIX-complaint shell scripts, with almost no dependencies. In addition to one of the prettiest designs I&#8217;ve seen in a while, it also has a bunch of cool features:</p>
+<ul>
+<li>Deep linking</li>
+<li>Very cool 404 page</li>
+<li>Images are automatically compressed</li>
+<li>Builtin <code>git</code> history with links to diffs</li>
+</ul>
+<p>So, of course, I decided to create a new blog. And not just that, I wanted to build my own static site generator, just like Wesley did. So, I spent my weekend cooking up this little project.</p>
+<p>How does one build a SSG, you might ask? Well, it&#8217;s actually fairly simple, because a lot of the building blocks are already out there. For my project, I chose the <a href="https://shopify.github.io/liquid/">Liquid templating language</a>. Luckily, there&#8217;s already an amazing Javascript library for using Liquid out there, called <a href="https://liquidjs.com">LiquidJS</a>. The same goes for <a href="https://www.npmjs.com/package/js-yaml">YAML parsing</a> and Markdown (using <a href="https://github.com/audiodude/gemdown">gemdown</a> and <a href="https://marked.js.org">marked</a> respectively).</p>
+<p>Consequently, after glueing together a bunch of libraries that other people wrote, I ended up with something like this:</p>
+<pre class="athl" style="color: #abb2bf; background-color: #282c34;"><code class="language-javascript" translate="no" tabindex="0"><div class="line" data-line="1"><span style="color: #7f848e;">// This code snippet is greatly simplied,</span>
+</div><div class="line" data-line="2"><span style="color: #7f848e;">// but the general flow is like this.</span>
+</div><div class="line" data-line="3">
+</div><div class="line" data-line="4"><span style="color: #c678dd;">let</span> <span style="color: #e06c75;">globalVariables</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">readGlobalConfigFile</span><span style="color: #c678dd;">(</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="5">
+</div><div class="line" data-line="6"><span style="color: #c678dd;">let</span> <span style="color: #e06c75;">contentFiles</span> <span style="color: #56b6c2;">=</span> 
+</div><div class="line" data-line="7">  <span style="color: #61afef;">getAllFilesWithExtension</span><span style="color: #c678dd;">(</span><span style="color: #98c379;">&quot;.txt&quot;</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">map</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">mergeFrontmatterWithGlobalVariables</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="8">
+</div><div class="line" data-line="9"><span style="color: #c678dd;">for</span> <span style="color: #c678dd;">(</span><span style="color: #c678dd;">const</span> <span style="color: #e06c75;">output</span> <span style="color: #c678dd;">in</span> <span style="color: #61afef;">directoriesIn</span><span style="color: #c678dd;">(</span><span style="color: #98c379;">&quot;templates&quot;</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="10">  <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">template</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">parseDefaultTemplateFor</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">output</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="11">  <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">pages</span> <span style="color: #56b6c2;">=</span> <span style="color: #c678dd;">[</span><span style="color: #c678dd;">]</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="12">
+</div><div class="line" data-line="13">  <span style="color: #c678dd;">for</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span> <span style="color: #c678dd;">in</span> <span style="color: #e06c75;">files</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">filter</span><span style="color: #c678dd;">(</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">f</span><span style="color: #c678dd;">)</span> <span style="color: #56b6c2;">=&gt;</span> <span style="color: #56b6c2;">!</span><span style="color: #61afef;">isIndex</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">f</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="14">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">destPath</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">generateDestinationPath</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">path</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">extname</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">.</span><span style="color: #e06c75;">path</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="15">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">parsedMarkdown</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">parseMarkdown</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">,</span> <span style="color: #61afef;">getContent</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="16">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">variables</span> <span style="color: #56b6c2;">=</span> <span style="color: #c678dd;">&lbrace;</span> <span style="color: #e06c75;">url</span><span style="color: #abb2bf;">:</span> <span style="color: #e06c75;">destPath</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">content_rendered</span><span style="color: #abb2bf;">:</span> <span style="color: #e06c75;">parsedMarkdown</span><span style="color: #abb2bf;">,</span> <span style="color: #56b6c2;">...</span><span style="color: #e06c75;">variables</span> <span style="color: #c678dd;">&rbrace;</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="17">
+</div><div class="line" data-line="18">    <span style="color: #e06c75;">pages</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">append</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">variables</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="19">
+</div><div class="line" data-line="20">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">finalContent</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">renderTemplate</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">variables</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="21">    <span style="color: #61afef;">writeToFile</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">finalContent</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">output</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">destPath</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="22">  <span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="23">  
+</div><div class="line" data-line="24">  <span style="color: #c678dd;">for</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span> <span style="color: #c678dd;">in</span> <span style="color: #e06c75;">files</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">filter</span><span style="color: #c678dd;">(</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">f</span><span style="color: #c678dd;">)</span> <span style="color: #56b6c2;">=&gt;</span> <span style="color: #56b6c2;">!</span><span style="color: #61afef;">isIndex</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">f</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span> <span style="color: #c678dd;">&lbrace;</span>
+</div><div class="line" data-line="25">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">destPath</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">generateDestinationPath</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">path</span><span style="color: #abb2bf;">.</span><span style="color: #61afef;">extname</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">.</span><span style="color: #e06c75;">path</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="26">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">parsedMarkdown</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">parseMarkdown</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">,</span> <span style="color: #61afef;">getContent</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">file</span><span style="color: #c678dd;">)</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="27">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">variables</span> <span style="color: #56b6c2;">=</span> <span style="color: #c678dd;">&lbrace;</span> <span style="color: #e06c75;">url</span><span style="color: #abb2bf;">:</span> <span style="color: #e06c75;">destPath</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">content_rendered</span><span style="color: #abb2bf;">:</span> <span style="color: #e06c75;">parsedMarkdown</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">pages</span><span style="color: #abb2bf;">:</span> <span style="color: #e06c75;">pages</span><span style="color: #abb2bf;">,</span> <span style="color: #56b6c2;">...</span><span style="color: #e06c75;">variables</span> <span style="color: #c678dd;">&rbrace;</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="28">
+</div><div class="line" data-line="29">    <span style="color: #c678dd;">let</span> <span style="color: #e06c75;">finalContent</span> <span style="color: #56b6c2;">=</span> <span style="color: #61afef;">renderTemplate</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">template</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">variables</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="30">    <span style="color: #61afef;">writeToFile</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">finalContent</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">output</span><span style="color: #abb2bf;">,</span> <span style="color: #e06c75;">destPath</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="31">  <span style="color: #c678dd;">&rbrace;</span>
+</div><div class="line" data-line="32">
+</div><div class="line" data-line="33">  <span style="color: #61afef;">copyOverStaticFiles</span><span style="color: #c678dd;">(</span><span style="color: #e06c75;">output</span><span style="color: #c678dd;">)</span><span style="color: #abb2bf;">;</span>
+</div><div class="line" data-line="34"><span style="color: #c678dd;">&rbrace;</span>
+</div></code></pre>
+<p>Yup. It&#8217;s that simple.</p>
+<p>I settled on calling it <code>chop</code>, because I hoped it would be semi-fast (in dutch &#8220;chop chop&#8221; is a way to tell someone to speed things up).</p>
+<p>The initial version has these features:</p>
+<ul>
+<li>A global config file</li>
+<li>Front Matter</li>
+<li>Liquid templates</li>
+<li>Static files</li>
+<li>Multiple outputs (HTML, gemtext, RSS etc.)</li>
+<li>Smartypants punctuation</li>
+<li>Automatic image compression</li>
+<li>Render content as liquid templates
+(which allows you to use variables and partials in content)</li>
+<li>Prefixing relative URLs (in content).</li>
+</ul>
+<p>But I&#8217;m planning to add quite a bit more:</p>
+<ul>
+<li>Syntax highlighting</li>
+<li>Automatic hashes in filenames for CSS</li>
+<li>Integration with <code>git</code> (for file history)</li>
+</ul>
+<p>I&#8217;m not building this to be extendible or modular. Instead, this should stay a relatively simple script that just does what <em>I</em> want it to do. If <em>you</em> want to build something else, go for it!</p>
+<p>So yea. Writing <code>chop</code> was quite fun, and I&#8217;m definitely happy with the end result!</p>
+<p><a class="button" href="https://git.dupunkto.org/~axcelott/chop">Soure code</a></p></div>
+        </div>
+
+        <footer>
+          <p class="reply-by-email">
+            <a class="button" href="/v/22/contact?subject=RE: Writing my own SSG">Reply by email</a>
+          </p>
+        </footer>
+      </article>
+    </main>
+
+    <footer>
+      Made with ♡ in the Netherlands. <a href="https://copyheart.org">Copying is an act of love.</a> Please copy.
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- Google, please don't mess with my lovingly handcrafted HTML -->
+<meta name="googlebot" content="notranslate">
+
+<link rel="canonical" href="https://geheimesite.nl/blog/hotfox">
+<link rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/">
+<link rel="stylesheet" href="/v/22/main.css" type="text/css">
+
+<title>HotFox: RSS superpowers for Firefox</title>
+
+<link rel="shortcut icon" href="/v/22/favicon.ico">
+  </head>
+  <body>
+    <header>
+  <nav>
+    <a href="/v/22/blog">← Back to the index</a>
+  </nav>
+</header>
+
+    <main>
+      <article class="h-entry">
+        <hgroup>
+          <h1 class="p-name">HotFox: RSS superpowers for Firefox</h1>
+          <p>
+            <time class="dt-published" datetime="2024-03-20">
+              Mar 20, 2024
+            </time>
+          </p>
+        </hgroup>
+
+        <div class="p-summary e-content">
+          <div><p>A few weeks ago, I ran across an old article about XUL, a XML variant developed by Mozilla for use in the Firefox interface. They killed it a few years ago in favor of HTML, once again leaving behind their tried-and-tested solutions in their ever-lasting chase to be as cool and hot as Google and its Chromium project. So, to try it out anyway, I installed <a href="https://palemoon.org">Pale Moon</a>, a Firefox fork that has kept the traditional XUL interface in its former glory.</p>
+<p>Part of said traditional interface was a subscribe button that popped up in the toolbar while visiting some sites. When clicked, it showed a list of all web feeds that the site exposed. By selecting one of them, or by simply visiting the feed URL, you got this fancy feed preview with an option to subscribe to it with your favorite RSS reader.</p>
+<p>Why exactly did &#8220;modern&#8221; browsers remove this? When I visit an RSS feed in contemporary Firefox, I get this monstrosity:</p>
+<figure>
+  <img src="https://cdn.geheimesite.nl/images/blog/rss-plain.png" alt="">
+  <figcaption>A bunch of confusing XML. Ew, that looks disgusting.</figcaption>
+</figure>
+<p>Why doesn&#8217;t the browser give me the ability to subscribe to a feed (anymore)? <a href="https://www.feed.style">Why is it left for developers to figure out</a>, when it should obviously be the browser&#8217;s job?</p>
+<p>In an attempt to right this wrong once and for all, I built HotFox, a browser extension. It does two things:</p>
+<ul>
+<li>It adds a button to the toolbar that shows if a site exposes web feeds.</li>
+<li>It makes unstyled RSS feeds readable; turning the absolute mess from before into a more pleasant preview:</li>
+</ul>
+<figure>
+  <img src="https://cdn.geheimesite.nl/images/blog/rss-fancy.png" alt="">
+  <figcaption>A pretty rendered RSS feed with suybscribe button. Phew, that&#8217;s better.</figcaption>
+</figure>
+<p>It&#8217;s available in the Mozilla Add-ons store, if you&#8217;d like to try it:</p>
+<p><a class="button" href="https://addons.mozilla.org/en-US/firefox/addon/hotfox-for-rss/">
+Download
+</a>
+<a class="button" href="https://git.dupunkto.org/~axcelott/hotfox">
+Source code
+</a></p>
+<aside class="box">
+  <h2>FAQ</h2>
+  <dl>
+    <dt>Why the name?</dt>
+    <dd>
+      Fire is hot; idk it just sounded cool. There&#8217;s not really a
+      reason.
+    </dd>
+    <dt>
+      Why build a new extension when
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/rsspreview/">it</a>
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/awesome-rss/">already</a>
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/want-my-rss/">exists</a>?
+    </dt>
+    <dd>
+      Because this seemed like a fun project to learn something about
+      developing browser extensions.
+    </dd>
+    <dt>Will there be a Chrome version?</dt>
+    <dd>
+      No. I don&#8217;t use Chrome myself;
+      <a href="/v/22/monocultuur-op-de-browsermarkt">
+        I don&#8217;t like Google&#8217;s attitude</a>.<br>
+      But kudos to them&#8212;they
+      <a href="https://www.ghacks.net/2022/08/22/google-chrome-is-getting-an-rss-feed-reader-on-desktop/">
+        got it built in.
+      </a>
+    </dd>
+    <dt>Where can I get it?</dt>
+    <dd>
+      On the
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/hotfox-for-rss/">
+        Mozilla Add-ons store</a>.
+    </dd>
+  </dl>
+</aside></div>
+        </div>
+
+        <footer>
+          <p class="reply-by-email">
+            <a class="button" href="/v/22/contact?subject=RE: HotFox: RSS superpowers for Firefox">Reply by email</a>
+          </p>
+        </footer>
+      </article>
+    </main>
+
+    <footer>
+      Made with ♡ in the Netherlands. <a href="https://copyheart.org">Copying is an act of love.</a> Please copy.
+    </footer>
+  </body>
+</html>
