@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+serve() {
+  cheese
+}
+
+deploy() {
+  lift deploy
+}
