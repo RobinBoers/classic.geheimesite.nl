@@ -1,6 +1,6 @@
 name: classic.geheimesite.nl
 type: static
-runner: nov.dupunk.to
+cluster: dupunk.to
 src: .
 exclude:
 - README.md
